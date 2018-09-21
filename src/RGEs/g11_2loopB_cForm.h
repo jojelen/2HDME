@@ -1,0 +1,1 @@
+(-151.*pow(g1,4.))/32. - (9.*pow(g1,2.)*pow(g2,2.))/16. + (249.*pow(g2,4.))/32. + (-48.*pow(abs(Lambda5),2.) - 144.*pow(abs(Lambda6),2.) - 48.*pow(abs(Lambda7),2.) - 16.*(3.*pow(Lambda1,2.) + 2.*(pow(Lambda3,2.) + pow(Lambda4,2.) + Lambda3*Lambda4)))/32.

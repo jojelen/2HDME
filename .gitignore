@@ -1,0 +1,7 @@
+# ignore all files in the build/ directory
+bin/
+lib/
+output/
+
+# Ignore files ending with ~
+*~

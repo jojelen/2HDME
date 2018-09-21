@@ -1,0 +1,1 @@
+(104.*pow(g1,5.))/9. + pow(g1,3.)*((-15.*(eta1D.adjoint() * eta1D).trace() - 45.*(eta1L.adjoint() * eta1L).trace() - 51.*(eta1U.adjoint() * eta1U).trace() - 15.*(eta2D.adjoint() * eta2D).trace() - 45.*(eta2L.adjoint() * eta2L).trace() - 51.*(eta2U.adjoint() * eta2U).trace())/18. + 6.*pow(g2,2.) + (44.*pow(g3,2.))/3.)

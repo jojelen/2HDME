@@ -1,0 +1,1 @@
+(3.*pow(g1,2.)*pow(g2,3.))/2. + (35.*pow(g2,5.))/6. + pow(g2,3.)*(12.*pow(g3,2.) + (-9.*(yD.adjoint() * yD).trace() - 3.*(yL.adjoint() * yL).trace() - 9.*(yU.adjoint() * yU).trace())/6.)

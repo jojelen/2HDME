@@ -1,0 +1,1 @@
+-((12.*(eta1D.adjoint() * eta1D).trace() + 12.*(eta1U.adjoint() * eta1U).trace() + 12.*(eta2D.adjoint() * eta2D).trace() + 12.*(eta2U.adjoint() * eta2U).trace())*pow(g3,3.))/6. + (11.*pow(g1,2.)*pow(g3,3.))/6. + (9.*pow(g2,2.)*pow(g3,3.))/2. - 26.*pow(g3,5.)

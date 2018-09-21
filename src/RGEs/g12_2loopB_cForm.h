@@ -1,0 +1,1 @@
+(-3.*((Lambda1 + Lambda3 + Lambda4)*Lambda6 + (Lambda2 + Lambda3 + Lambda4)*Lambda7 + Lambda5*(conj(Lambda6) + conj(Lambda7))))/2.

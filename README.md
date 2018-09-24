@@ -60,7 +60,6 @@ Joel Oredsson ( joel_ored@hotmail.com )
 
 Copyright (C) 2018 Joel Oredsson.
 2HDME is licenced under the GNU GPL v3 or later, see LICENSE for details.
-Alarm clock
 
 
 

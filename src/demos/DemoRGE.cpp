@@ -6,7 +6,7 @@
  * @author: Joel Oredsson
  *
  * Evolves a CP conserving type II 2HDM up to the Planck scale.
- * 
+ *
  * This demonstrates the basic functionality of specifying a THDM at the top
  * mass scale and running it up to the Planck scale.
  *
@@ -58,18 +58,18 @@ int main(int argc, char *argv[])
   // One can also write a SLHA file of the THDM and SM
   sm.write_slha_file();
   int sphenoLoopOrder = 0; // Loop order for mass calculations if SPheno is used
-  thdm.write_slha_file( sphenoLoopOrder); 
+  thdm.write_slha_file(sphenoLoopOrder);
 
   // The options for evolving a THDM object can configured by specifying a
   // RgeConfig struct:
   RgeConfig options;
-  options.dataOutput = true;              // Writes parameters to file in each RGE step.
-  options.consoleOutput = true;           // Writes info to console
+  options.dataOutput = true;         // Writes parameters to file in each RGE step.
+  options.consoleOutput = true;      // Writes info to console
   options.evolutionName = "DemoRGE"; // Output directory
-  options.twoloop = true;                 // Uses 2-loop RGEs
-  options.perturbativity = true;          // Stops at perturbativity violation
-  options.stability = false;              // Continues at stability violation
-  options.unitarity = false;              // Continues at unitarity violation
+  options.twoloop = true;            // Uses 2-loop RGEs
+  options.perturbativity = true;     // Stops at perturbativity violation
+  options.stability = false;         // Continues at stability violation
+  options.unitarity = false;         // Continues at unitarity violation
   options.finalEnergyScale = 1e18;
   options.steps = 100; // Number of steps in evolution where checks are being
                        // made and parameters are saved to files.
@@ -83,10 +83,13 @@ int main(int argc, char *argv[])
   std::cout << "Parameters after evolution: \n";
   thdm.print_all();
 
-  // To retrieve the potential parameters one can use
+  // There are plenty of parameters one can get from the thdm. See THDM.h for
+  // a complete list of the implemented ones.
+  // For example, to retrieve the potential parameters one can use
   Base_generic genFinal = thdm.get_param_gen();
 
-  std::cout << "\n Lambda1 increased by " << std::abs(100 * genFinal.Lambda1 / gen.Lambda1) << " %\n";
+  std::cout << "\n Lambda1 increased by "
+            << std::abs(100 * genFinal.Lambda1 / gen.Lambda1) << " %\n";
 
   std::cout << "DemoRGE complete!\n\n";
 }

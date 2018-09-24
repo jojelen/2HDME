@@ -6,7 +6,7 @@
  * @author: Joel Oredsson
  *
  * Simple example of running the standard model up to the Planck scale, 1e18 
- * GeV. Stability should break down at aroung 10^10 GeV using the 2-loop
+ * GeV. Stability should break down at around 10^11 GeV using the 2-loop
  * RGEs (set by default).
  * 
  *============================================================================*/
@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 {
   Timer timer; // Prints running time at the end
 
+  // Creates a SM at the top mass scale.
   SM sm;
   sm.print_all();
 
@@ -31,11 +32,10 @@ int main(int argc, char *argv[])
   sm.print_rgeResults();
   sm.print_all();
 
-  // One can also save the SM as a text file with FileSystem.
+  // One can also save the SM as a SLHA file.
   // So first reset to the saved state and then print model file.
   sm.reset_to_saved_state();
-
-  sm.write_slha_file("sm_SLHA");
+  sm.write_slha_file("DemoSM_SLHA");
 
   std::cout << "DemoSM complete!\n\n";
 }

@@ -1876,7 +1876,7 @@ void THDM::write_slha_file(const int sphenoLoopLvl, const string &file) const
       "##################################################################\n");
   fprintf(output, "#\n");
   fprintf(output, "#  2HDM SLHA file                                 \n");
-  fprintf(output, info.c_str());
+  fprintf(output, "%s", info.c_str());
   fprintf(output, "#\n");
   fprintf(
       output,

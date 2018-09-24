@@ -225,6 +225,18 @@ public:
   void set_model_from_y(const double y[]) override;
 
   /**
+   * @brief: Resets the model
+   *
+   * Sets parameters to zero, sm parameters to the sm at EW scale.
+   * If one supplies a pointer to a double array y[], it resets all the
+   * parameters to those as well.
+   *
+   * @returns false if it can't calculate Higgs masses when given a y[].
+   * */
+  bool reset(const double y[], const double &renormScale) override;
+  bool reset_to_saved_state() override;
+
+  /**
    * @brief: Prints the gauge CKM matrix, gauge couplings, potential
    * parameters in Higgs basis, Higgs masses and Yukawa couplings.
    */
@@ -409,17 +421,7 @@ public:
   void generate_random_soft_cp_conserved_potential(const int loopLvl,
                                                    const gsl_rng *rng);
 
-  /**
-   * @brief: Resets the model
-   *
-   * Sets parameters to zero, sm parameters to the sm at EW scale.
-   * If one supplies a pointer to a double array y[], it resets all the
-   * parameters to those as well.
-   *
-   * @returns false if it can't calculate Higgs masses when given a y[].
-   * */
-  bool reset(const double y[], const double &renormScale) override;
-  bool reset_to_saved_state() override;
+  
 
 private:
   /* Sets the kappa matrices to be diagonal proportional to the fermion

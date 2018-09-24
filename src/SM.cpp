@@ -316,7 +316,7 @@ void SM::write_slha_file(const std::string &file) const
       "##################################################################\n");
   fprintf(output, "#\n");
   fprintf(output, "#  SM SLHA file                                 \n");
-  fprintf(output, info.c_str());
+  fprintf(output, "%s", info.c_str());
   fprintf(output, "#\n");
   fprintf(
       output,

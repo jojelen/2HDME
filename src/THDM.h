@@ -314,9 +314,13 @@ public:
   // Returns largest non-diagonal Yukawa element in Cheng-Sher parametrization
   std::tuple<std::string, int, int, std::complex<double>>
   get_largest_nonDiagonal_lamF() const;
+
+  // Returns a specific lambda_ij Yukawa element 
   double get_lamF_element(const FermionSector flavor, const int i,
                           const int j) const;
-
+  // Or a complete matrix
+  Eigen::Matrix3cd get_lamF(const FermionSector flavor) const;
+  
   /**
    * @brief: Prints to console
    */

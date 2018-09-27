@@ -53,6 +53,11 @@ int main(int argc, char *argv[])
   // set before this, since tanb must be specified.
   thdm.set_yukawa_type(TYPE_I);
 
+  // Calculates 1-loop masses if SPheno is enabled:
+  #ifdef SPHENO
+  thdm.run_spheno(1); // Argument is loop lvl (0, 1 or 2).
+  #endif
+
   thdm.print_all();
 
   // One can also write a SLHA file of the THDM and SM

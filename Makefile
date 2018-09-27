@@ -76,8 +76,8 @@ RGESRC+=GnuPlotSystem.cpp
 # RGESRC+=THDM_fitter.cpp
 
 # To enable SPheno functionality
-#CFLAGS+=-DSPHENO
-#RGESRC+=SPheno.cpp
+CFLAGS+=-DSPHENO
+RGESRC+=SPheno.cpp
 
 .PHONY: directories lib clean distclean
 

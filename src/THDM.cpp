@@ -44,7 +44,6 @@ using namespace std;
 namespace THDME
 {
 
-
 /*----------------------------------------------------------------------------*/
 
 THDM::THDM() : _z2_symmetry(NO_SYMMETRY) { init(); }
@@ -1309,6 +1308,22 @@ double THDM::get_lamF_element(const FermionSector flavor, const int i,
 
   return v * abs((*rF[(int)flavor])(i, j)) /
          sqrt(2. * mF[(int)flavor][i] * mF[(int)flavor][j]);
+}
+
+Eigen::Matrix3cd THDM::get_lamF(const FermionSector flavor) const
+{
+  vector<const Eigen::Matrix3cd *> rF = {&_rU, &_rD, &_rL};
+  vector<const double *> mF = {_mup, _mdn, _ml};
+  double v = sqrt(_v2);
+
+  Eigen::Matrix3cd lamF;
+  lamF.setZero();
+  for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j)
+      lamF(i, j) = v * abs((*rF[(int)flavor])(i, j)) /
+                   sqrt(2. * mF[(int)flavor][i] * mF[(int)flavor][j]);
+
+  return lamF;
 }
 
 std::tuple<string, int, double> THDM::get_largest_lambda() const

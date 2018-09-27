@@ -328,6 +328,12 @@ void GnuPlotSystem::create_export_script() const
   switch (_z2Symmetry)
   {
   case NO_SYMMETRY:
+    matrixNames.emplace_back("eta1U");
+    matrixNames.emplace_back("eta1D");
+    matrixNames.emplace_back("eta1L");
+    matrixNames.emplace_back("eta2U");
+    matrixNames.emplace_back("eta2D");
+    matrixNames.emplace_back("eta2L");
     break;
   case TYPE_I:
     matrixNames.emplace_back("eta2U");

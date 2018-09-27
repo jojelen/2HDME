@@ -189,4 +189,48 @@ std::string double_range::toString()
   return rangeString;
 }
 
+//------------------------------------------------------------------------------
+
+Range_hybrid::Range_hybrid()
+      : mh(105, 145), mH(150, 1000), cba(-0.5, 0.5), tanb(1.1, 50),
+        Z4(-M_PI, M_PI), Z5(-M_PI, M_PI), Z7(-M_PI, M_PI), name("Default"),
+        yukawaType(TYPE_I) {}
+
+  void Range_hybrid::print() const
+  {
+    std::cout << name << "'s free parameter ranges:\n";
+    std::cout << "mh: " << mh << std::endl;
+    std::cout << "mH: " << mH << std::endl;
+    std::cout << "cba: " << cba << std::endl;
+    std::cout << "tanb: " << tanb << std::endl;
+    std::cout << "Z4: " << Z4 << std::endl;
+    std::cout << "Z5: " << Z5 << std::endl;
+    std::cout << "Z7: " << Z7 << std::endl;
+  }
+
+  Base_hybrid Range_hybrid::get_random_point(const gsl_rng *rng) const
+  {
+    Base_hybrid hyb;
+
+    // Random free parameters
+    hyb.mh = mh.draw_random(rng);
+    hyb.mH = mH.draw_random(rng);
+    hyb.cba = cba.draw_random(rng);
+
+    if (tanb.fixed)
+      hyb.tanb = tanb.fixedValue;
+    else
+    {
+      double_range betaRange(atan(tanb.min), atan(tanb.max));
+      double beta = betaRange.draw_random(rng);
+      hyb.tanb = tan(beta);
+    }
+    
+    hyb.Z4 = Z4.draw_random(rng);
+    hyb.Z5 = Z5.draw_random(rng);
+    hyb.Z7 = Z7.draw_random(rng);
+
+    return hyb;
+  }
+
 } // namespace THDME

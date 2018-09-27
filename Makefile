@@ -39,7 +39,7 @@ BINDIR=bin
 
 # Source code:
 RGESRC=BaseModel.cpp RgeModel.cpp THDM.cpp RGE.cpp \
-HelpFunctions.cpp FileSystem.cpp LoggingSystem.cpp ParameterScan.cpp SM.cpp\
+HelpFunctions.cpp FileSystem.cpp LoggingSystem.cpp SM.cpp\
 THDM_bases.cpp Structures.cpp
 OBJECTS=$(RGESRC:.cpp=.o)
 
@@ -47,7 +47,7 @@ LIB=lib2HDME.a
 LDFLAGS+=-L$(LIBDIR) -l2HDME -lgsl -lgslcblas -lm
 LIBS=
 
-DEMOS=DemoRGE DemoSM DemoBenchmark 
+DEMOS=DemoRGE DemoSM 
 PROG=
 
 # Comment these line to not compile the GUI

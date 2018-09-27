@@ -93,8 +93,9 @@ int main(int argc, char *argv[])
   // For example, to retrieve the potential parameters one can use
   Base_generic genFinal = thdm.get_param_gen();
 
-  std::cout << "\n Lambda1 increased by "
+  std::cout << "THDM API example:\n";
+  std::cout << "\nLambda1 increased by "
             << std::abs(100 * genFinal.Lambda1 / gen.Lambda1) << " %\n";
 
-  std::cout << "DemoRGE complete!\n\n";
+  std::cout << "\nDemoRGE complete!\n\n";
 }

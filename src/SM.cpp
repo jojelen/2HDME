@@ -27,7 +27,7 @@ namespace THDME
  *
  * Used the tree-lvl relation v = 246 GeV.
  *
- *   Gauge couplings are also from arXiv:1307.3536v4.
+ *   Gauge couplings are also from arXiv:1307.3536v4. 
  */
 SM::SM()
     : _g1(0.35830), _g2(0.64779), _g3(1.1666), _lambda(0.12604),

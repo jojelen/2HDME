@@ -23,7 +23,7 @@ RgeModel::RgeModel()
 
   _ySaved = nullptr;
 }
-
+ 
 RgeModel::~RgeModel() 
 {
   if (_odeDriver != nullptr)
@@ -45,10 +45,9 @@ bool RgeModel::init_rge_systems(int rgeFunc_1loop(double t, const double y[],
                                                   double dydt[], void *params),
                                 const int numParams)
 {
-
-  *_odeSystem_1loop = {rgeFunc_1loop, jac, numParams, &_ODE_PARAMS};
-  *_odeSystem_2loop = {rgeFunc_2loop, jac, numParams, &_ODE_PARAMS};
-  _numParams = numParams;
+    _numParams = numParams;
+  *_odeSystem_1loop = {rgeFunc_1loop, jac, _numParams, &_ODE_PARAMS};
+  *_odeSystem_2loop = {rgeFunc_2loop, jac, _numParams, &_ODE_PARAMS};
 
   if (_odeSystem_1loop == nullptr || _odeSystem_2loop == nullptr){
     _console.error << "[ERROR]: Couldn't set rge systems.\n";

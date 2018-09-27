@@ -180,7 +180,7 @@ protected:
   double* _ySaved; // Stored parameters from save_current_state.
   double _savedRenormScale; // Energy scale where _ySaved is defined.
 
-  unsigned int _numParams; // Number of running parameters in the y[] array.
+  std::size_t _numParams; // Number of running parameters in the y[] array.
   unsigned int _rgeLoopOrder;
   double _renormScale; // Renormalization scale.
   RgeResults _rgeResults;

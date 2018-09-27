@@ -31,7 +31,7 @@ std::ostream &operator<<(std::ostream &oS, const Base_generic &gen)
      << "Lambda1 = " << gen.Lambda1 << std::endl
      << "Lambda2 = " << gen.Lambda2 << std::endl
      << "Lambda3 = " << gen.Lambda3 << std::endl
-     << "Lambda4 = " << gen.Lambda4 << std::endl
+     << "Lambda4 = " << gen.Lambda4 << std::endl 
      << "Lambda5 = " << gen.Lambda5 << std::endl
      << "Lambda6 = " << gen.Lambda6 << std::endl
      << "Lambda7 = " << gen.Lambda7 << std::endl;

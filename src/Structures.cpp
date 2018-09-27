@@ -157,15 +157,6 @@ double double_range::draw_random(const gsl_rng *rng) const
 }
 
 // Overloading the << operator
-std::ofstream &operator<<(std::ofstream &of, const double_range &range)
-{
-  if (range.fixed)
-    of << range.fixedValue;
-  else
-    of << "( " << range.min << ", " << range.max << ")";
-  return of;
-}
-// Overloading the << operator
 std::ostream &operator<<(std::ostream &of, const double_range &range)
 {
   if (range.fixed)

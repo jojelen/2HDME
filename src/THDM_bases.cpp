@@ -7,7 +7,7 @@
  *============================================================================*/
 #include "THDM_bases.h"
 #include "HelpFunctions.h"
-#include "ParameterScan.h"
+#include "Structures.h"
 
 #include <Eigen/Dense>
 

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "HelpFunctions.h"
+#include "THDM_bases.h"
 
 #include <Eigen/Dense>
 #include <complex>
@@ -110,6 +111,24 @@ struct double_range
   friend std::ostream &operator<<(std::ostream &of, const double_range &range);
 
   std::string toString();
+};
+
+//------------------------------------------------------------------------------
+
+/*******************************************************************************
+ * @brief: Collection of parameter ranges for hybrid basis
+ */
+struct Range_hybrid
+{
+  double_range mh, mH, cba, tanb, Z4, Z5, Z7;
+  std::string name;
+  Z2symmetry yukawaType;
+
+  Range_hybrid();
+
+  void print() const;
+
+  Base_hybrid get_random_point(const gsl_rng *rng) const;
 };
 
 /*----------------------------------------------------------------------------*/

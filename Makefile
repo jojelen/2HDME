@@ -58,8 +58,8 @@ PROG=
 # PROG+=ThdmcGui
 
 # Comment to disable GNU-Plot
-CFLAGS+=-DGNUPLOT
-RGESRC+=GnuPlotSystem.cpp
+# CFLAGS+=-DGNUPLOT
+# RGESRC+=GnuPlotSystem.cpp
 
 # To use HiggsBounds/HiggsSignals for Higgs constraints, put the corresponding 
 # libraries in the "lib" subdirectory and uncomment the following lines.

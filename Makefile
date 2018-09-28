@@ -58,8 +58,8 @@ PROG=
 # PROG+=ThdmcGui
 
 # Comment to disable GNU-Plot
-# CFLAGS+=-DGNUPLOT
-# RGESRC+=GnuPlotSystem.cpp
+CFLAGS+=-DGNUPLOT
+RGESRC+=GnuPlotSystem.cpp
 
 # To use HiggsBounds/HiggsSignals for Higgs constraints, put the corresponding 
 # libraries in the "lib" subdirectory and uncomment the following lines.
@@ -76,8 +76,8 @@ PROG=
 # RGESRC+=THDM_fitter.cpp
 
 # To enable SPheno functionality
-CFLAGS+=-DSPHENO
-RGESRC+=SPheno.cpp
+# CFLAGS+=-DSPHENO
+# RGESRC+=SPheno.cpp
 
 .PHONY: directories lib clean distclean
 

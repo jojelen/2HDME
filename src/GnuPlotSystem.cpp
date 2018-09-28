@@ -245,7 +245,7 @@ void GnuPlotSystem::create_higgs_masses_script() const
                      ".dat' using 1:4 w l lw lineWidth title \"m_{h_3}\",\\\n"
                      "'" +
                      _outputDir + "data/HiggsMasses_" + _loopOrder +
-                     ".dat' using 1:5 w l lw lineWidth title \"m_{H^\\pm}\"";
+                     ".dat' using 1:5 w l lw lineWidth title \"m_{Hc}\"";
   *file << text;
   file->close();
   delete file;

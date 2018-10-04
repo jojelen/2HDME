@@ -30,10 +30,10 @@
 
 #include <Eigen/Dense>
 #include <algorithm>
-#include <complex> 
-#include <cstdlib> 
+#include <complex>
+#include <cstdlib>
 #include <gsl/gsl_odeiv2.h>
-#include <iostream> 
+#include <iostream>
 #include <string>
 
 #include <cstdio>
@@ -1142,8 +1142,9 @@ bool THDM::calc_treeLvl_masses_and_mixings()
   {
     if (M.eigenvalues()[i] < 0)
     {
-      _console.warning << "[WARNING]: negative eigenvalues in mass matrix, (mh["
-                       << i << "]^2 = " << M.eigenvalues()[i] << " GeV^2). \n";
+      _console.debug << "[WARNING]: negative eigenvalues in mass matrix, (mh["
+                     << i << "]^2 = " << M.eigenvalues()[i] << " GeV^2). \n";
+      _mh[i] = 0.;
       return false;
     }
     else
@@ -1161,8 +1162,9 @@ bool THDM::calc_treeLvl_masses_and_mixings()
   // Charged Higgs:
   if (higgs.Y2 + 0.5 * higgs.Z3 * _v2 < 0)
   {
-    _console.warning
+    _console.debug
         << "[WARNING]: Encountered negative mass for charged Higgs!\n";
+    _mHc = 0.;
     return false;
   }
   else

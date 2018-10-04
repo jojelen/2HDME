@@ -47,7 +47,7 @@ LIB=lib2HDME.a
 LDFLAGS+=-L$(LIBDIR) -l2HDME -lgsl -lgslcblas -lm
 LIBS=
 
-DEMOS=DemoRGE DemoSM 
+DEMOS=DemoRGE DemoSM DemoBenchmark
 PROG=
 
 # Comment these line to not compile the GUI

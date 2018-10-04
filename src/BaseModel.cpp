@@ -13,7 +13,7 @@ namespace THDME
 {
 
 std::atomic<bool> BaseModel::_first_run(true);
-const std::string BaseModel::_version = "0.9";
+const std::string BaseModel::_version = "1.0";
 
 using namespace std;
 

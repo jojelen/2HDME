@@ -64,7 +64,7 @@ To enable **SPheno**, one must have a working installation of **SPheno** [spheno
 in the folder of **2HDME**. The folders name is by default *SPheno-4.0.3*, but can be changed by 
 modifying *SPHENO_PATH* in *src/SPheno.cpp*. 
 
-Next up, the modelfiles for 2HDM must be compiled with your **SPheno**. The needed
+Next up, the model files for 2HDM must be compiled with your **SPheno**. The needed
 model files have been created with **SARAH** [sarah.hepforge.org] and are included 
 in *SPhenoModelFiles/THDM_GEN*. Copy *THDM_GEN* to the **SPheno** directory and run
 *make* to compile it.

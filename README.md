@@ -89,6 +89,8 @@ I would like to thank my PhD supervisor, Johan Rathsman, for support.
 
 ## License
 
+[![DOI](https://zenodo.org/badge/149639202.svg)](https://zenodo.org/badge/latestdoi/149639202)
+
 Copyright (C) 2018 Joel Oredsson.
 2HDME is licenced under the GNU GPL v3 or later, see LICENSE for details.
 

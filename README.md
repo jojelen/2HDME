@@ -4,10 +4,6 @@
 2HDM in renormalization energy scale, by solving the 1- or 2-loop 
 Renormalization Group Equations (RGEs).
 
-See manual for detailed instructions of how to use this program.
-
-Please cite the manual if you use this program for a publication.
-
 ## Installation instructions
 
 ### Requirements 
@@ -79,6 +75,11 @@ See *DemoRGE* for an example of how to compute loop corrected masses with **SPhe
 ## Authors
 
 Joel Oredsson ( joel_ored@hotmail.com )
+
+### Citing
+Please cite [arXiv:1810.02588] if you use this program for a publication.
+And if you use the SPheno functionality with the model files that are generated
+with SARAH, please cite the relevant papers as it says in [spheno.hepforge.org] and [sarah.hepforge.org].
 
 ### Acknowledgments 
 

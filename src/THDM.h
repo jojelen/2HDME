@@ -242,6 +242,7 @@ public:
    */
   void print_all() const override;
 
+  
   /*------------------------------------------------------------------------*/
 
   /**
@@ -325,6 +326,7 @@ public:
    * @brief: Prints to console
    */
   void print_higgs_masses() const;
+  void print_fermion_masses() const;
   void print_potential() const;
   void print_yukawa() const;
   void print_CKM() const;

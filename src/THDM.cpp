@@ -1078,6 +1078,25 @@ void THDM::print_higgs_masses() const
   cout << "\n";
 }
 
+void THDM::print_fermion_masses() const
+{
+  Table tab(2);
+  tab.set_frame_style("-", "|");
+  tab.set_title("Fermions");
+  tab.add_row(vector<string>{"Masses", "[GeV]"}, true);
+  tab.add_row(vector<string>{"mT:", stringAuto(_mup[2])});
+  tab.add_row(vector<string>{"mC:", stringAuto(_mup[1])});
+  tab.add_row(vector<string>{"mU:", stringAuto(_mup[0])});
+  tab.add_row(vector<string>{"mB:", stringAuto(_mdn[2])});
+  tab.add_row(vector<string>{"mS:", stringAuto(_mdn[1])});
+  tab.add_row(vector<string>{"mD:", stringAuto(_mdn[0])});
+  tab.add_row(vector<string>{"mTau:", stringAuto(_ml[2])});
+  tab.add_row(vector<string>{"mMu:", stringAuto(_ml[1])});
+  tab.add_row(vector<string>{"mE:", stringAuto(_ml[0])});
+  tab.print();
+  cout << "\n";
+}
+
 void THDM::print_neutral_higgs_eigenVectors() const
 {
 

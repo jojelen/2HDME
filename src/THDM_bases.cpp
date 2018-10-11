@@ -382,8 +382,9 @@ Base_invariant Base_higgs::convert_to_invariant(const double &v2) const
   {
     if (M.eigenvalues()[i] < 0)
     {
-      cout << "[WARNING]: negative eigenvalues in mass matrix, (mh[" << i
-           << "]^2 = " << M.eigenvalues()[i] << " GeV^2). \n";
+      // cout << "[WARNING]: negative eigenvalues in mass matrix, (mh[" << i
+      //      << "]^2 = " << M.eigenvalues()[i] << " GeV^2). \n"; // DEBUG
+      inv.mh[i] = 0.;
     }
     else
       inv.mh[i] = sqrt(M.eigenvalues()[i]);
@@ -455,14 +456,16 @@ Base_invariant Base_higgs::convert_to_invariant(const double &v2) const
               sign(inv.mh[1] * inv.mh[1] - inv.mh[0] * inv.mh[0]) * sqrt(s122);
   else if (std::abs(s122) < 1.E-10)
     inv.s12 = 0.;
-  else
-    cout << "[WARNING]: large negative s12^2, when calculating "
-            "masses and mixings.\n";
-
+  else{
+    // cout << "[WARNING]: large negative s12^2, when calculating "
+    //         "masses and mixings.\n"; // DEBUG
+    inv.s12 = 0.;
+  }
   // Charged Higgs:
   if (Y2 + 0.5 * Z3 * v2 < 0)
   {
-    cout << "[WARNING]: Encountered negative mass for charged Higgs!\n";
+    // cout << "[WARNING]: Encountered negative mass for charged Higgs!\n"; //DEBUG
+    inv.mHc = 0.;
   }
   else
     inv.mHc = sqrt(Y2 + 0.5 * Z3 * v2);

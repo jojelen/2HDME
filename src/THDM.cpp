@@ -308,6 +308,7 @@ void THDM::rge_finished()
     _files.close_streams();
 
 #ifdef GNUPLOT
+    _console.info << "Running GNUPLOT!\n";
     GnuPlotSystem gnuSys(_files.get_directory());
     gnuSys.set_z2_symmetry(_z2_symmetry);
     gnuSys.create_pdf_plots(_rgeConfig, _rgeResults);
@@ -953,10 +954,11 @@ void THDM::print_features() const
   check("Stable (tree-lvl): ", is_stable());
   check("Stable (tree-lvl, z2sym): ", is_stable_z2sym());
 #if defined HiggsBounds
-  _hbhs.print_allowed_status();
+  _hbhs.print_allowed_status(); 
 #endif
 
   print_rgeResults();
+
 }
 
 void THDM::calc_rgeResults()
@@ -1161,7 +1163,7 @@ bool THDM::calc_treeLvl_masses_and_mixings()
   {
     if (M.eigenvalues()[i] < 0)
     {
-      _console.debug << "[WARNING]: negative eigenvalues in mass matrix, (mh["
+      _console.debug << "[DEBUG]: negative eigenvalues in mass matrix, (mh["
                      << i << "]^2 = " << M.eigenvalues()[i] << " GeV^2). \n";
       _mh[i] = 0.;
       return false;
@@ -1182,7 +1184,7 @@ bool THDM::calc_treeLvl_masses_and_mixings()
   if (higgs.Y2 + 0.5 * higgs.Z3 * _v2 < 0)
   {
     _console.debug
-        << "[WARNING]: Encountered negative mass for charged Higgs!\n";
+        << "[DEBUG]: Encountered negative mass for charged Higgs!\n";
     _mHc = 0.;
     return false;
   }

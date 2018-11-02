@@ -97,5 +97,15 @@ int main(int argc, char *argv[])
   std::cout << "\nLambda1 increased by "
             << std::abs(100 * genFinal.Lambda1 / gen.Lambda1) << " %\n";
 
+  // We can save the evolved model in another file
+  thdm.write_slha_file(sphenoLoopOrder, "DemoRGE_evolvedThdm");
+  
+  // To evolve downwards in energy, all one have to do is to change the 
+  // finalEnergyScale of RgeConfig.
+  options.finalEnergyScale = 1e3;
+  options.dataOutput = false; // To prevent overwriting the first plots.
+  thdm.set_rgeConfig( options);
+  thdm.evolve();
+
   std::cout << "\nDemoRGE complete!\n\n";
 }

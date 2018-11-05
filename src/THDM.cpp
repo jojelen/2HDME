@@ -257,7 +257,7 @@ bool THDM::fix_treeLvl_tadpole_eqs()
                         sinb * sinb);
       };
 
-      static double XI_PRECISION = 1e-16;
+      static double XI_PRECISION = 1e-10;
       while ( std::abs(f(xi)) > XI_PRECISION)
       {
         if ( std::abs(dfdx(xi)) < 1e-16)

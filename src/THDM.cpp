@@ -225,6 +225,50 @@ bool THDM::fix_treeLvl_tadpole_eqs()
                       sinb * cosb +
                   conj(_base_generic.Lambda6) * cosb * cosb *
                       std::polar(1., -_base_generic.xi) * cotb));
+
+    // We also solve eq.(A7) in PhysRevD.72.035004 numerically
+    // M12 must be non-zero.
+    if (std::abs(_base_generic.M12) > 1e-6)
+    {
+      double xi = 0;
+
+      // Using Newton's method to find xi that solves f = 0
+      auto f = [&, this](double x) {
+        return std::imag(_base_generic.M12 * std::polar(1., x)) -
+               0.5 * _v2 *
+                   (std::imag(_base_generic.Lambda5 * std::polar(1., 2 * x)) *
+                        sinb * cosb +
+                    std::imag(_base_generic.Lambda6 * std::polar(1., x)) *
+                        cosb * cosb +
+                    std::imag(_base_generic.Lambda7 * std::polar(1., x)) *
+                        sinb * sinb);
+      };
+      std::complex<double> I(0., 1.);
+
+      auto dfdx = [&, this](double x) {
+        return std::imag(I * _base_generic.M12 * std::polar(1., x)) -
+               0.5 * _v2 *
+                   (std::imag(2. * I * _base_generic.Lambda5 *
+                              std::polar(1., 2 * x)) *
+                        sinb * cosb +
+                    std::imag(I * _base_generic.Lambda6 * std::polar(1., x)) *
+                        cosb * cosb +
+                    std::imag(I * _base_generic.Lambda7 * std::polar(1., x)) *
+                        sinb * sinb);
+      };
+
+      static double XI_PRECISION = 1e-16;
+      while ( std::abs(f(xi)) > XI_PRECISION)
+      {
+        if ( std::abs(dfdx(xi)) < 1e-16)
+          break;
+
+        xi = xi - f(xi) / dfdx(xi);
+      }
+
+      _base_generic.xi = xi;
+    }
+
   }
   else
   {
@@ -954,11 +998,10 @@ void THDM::print_features() const
   check("Stable (tree-lvl): ", is_stable());
   check("Stable (tree-lvl, z2sym): ", is_stable_z2sym());
 #if defined HiggsBounds
-  _hbhs.print_allowed_status(); 
+  _hbhs.print_allowed_status();
 #endif
 
   print_rgeResults();
-
 }
 
 void THDM::calc_rgeResults()
@@ -1183,8 +1226,7 @@ bool THDM::calc_treeLvl_masses_and_mixings()
   // Charged Higgs:
   if (higgs.Y2 + 0.5 * higgs.Z3 * _v2 < 0)
   {
-    _console.debug
-        << "[DEBUG]: Encountered negative mass for charged Higgs!\n";
+    _console.debug << "[DEBUG]: Encountered negative mass for charged Higgs!\n";
     _mHc = 0.;
     return false;
   }

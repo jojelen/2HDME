@@ -258,12 +258,19 @@ bool THDM::fix_treeLvl_tadpole_eqs()
       };
 
       static double XI_PRECISION = 1e-10;
+      int nrTries = 0;
       while ( std::abs(f(xi)) > XI_PRECISION)
       {
         if ( std::abs(dfdx(xi)) < 1e-16)
           break;
 
         xi = xi - f(xi) / dfdx(xi);
+        
+        if (++nrTries > 50)
+        {
+          _console.warning << "[WARNING]: Couldn't find good xi value.\n";
+          break;
+        }
       }
 
       _base_generic.xi = xi;

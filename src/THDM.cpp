@@ -36,6 +36,7 @@
 #include <iostream>
 #include <string>
 
+#include <cmath>
 #include <cstdio>
 #include <unistd.h>
 
@@ -230,9 +231,8 @@ bool THDM::fix_treeLvl_tadpole_eqs()
     // M12 must be non-zero.
     if (std::abs(_base_generic.M12) > 1e-6)
     {
-      double xi = 0;
-
       // Using Newton's method to find xi that solves f = 0
+      // OBS: This can in principal fail.
       auto f = [&, this](double x) {
         return std::imag(_base_generic.M12 * std::polar(1., x)) -
                0.5 * _v2 *
@@ -259,23 +259,33 @@ bool THDM::fix_treeLvl_tadpole_eqs()
 
       static double XI_PRECISION = 1e-10;
       int nrTries = 0;
-      while ( std::abs(f(xi)) > XI_PRECISION)
+      int firstGuesses = 1;
+      static int maxGuesses = (int)(20. * M_PI);
+      double xi = 0; // Initial guess, this is incremented if it fails
+      while (std::abs(f(xi)) > XI_PRECISION)
       {
-        if ( std::abs(dfdx(xi)) < 1e-16)
-          break;
-
-        xi = xi - f(xi) / dfdx(xi);
-        
-        if (++nrTries > 50)
+        if (++nrTries > 20 || std::abs(dfdx(xi)) < 1e-16)
         {
-          _console.warning << "[WARNING]: Couldn't find good xi value.\n";
-          break;
+          // Failed to find xi such that f=0.
+          // Now tries new initial guess of xi.
+          xi = 0.1 * firstGuesses;
+          firstGuesses++;
+          nrTries = 0; // Reseting the nr of iterations
+        }
+
+        xi = xi - f(xi) / dfdx(xi); // Newton's method
+        xi = fmod(xi, 2. * M_PI);
+
+        if (firstGuesses > maxGuesses)
+        {
+          _console.error << "[ERROR]: Couldn't find good xi value when setting "
+                            "tadpole eqs.\n";
+          return false;
         }
       }
 
       _base_generic.xi = xi;
     }
-
   }
   else
   {

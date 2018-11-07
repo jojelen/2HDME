@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <thread>
+#include <vector>
 
 namespace THDME {
 

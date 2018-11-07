@@ -5,7 +5,7 @@
  * @brief: Demo of RG evolution of a 2HDM
  * @author: Joel Oredsson
  *
- * Evolves a CP conserving type II 2HDM up to the Planck scale.
+ * Evolves a CP conserving type I 2HDM up to the Planck scale.
  *
  * This demonstrates the basic functionality of specifying a THDM at the top
  * mass scale and running it up to the Planck scale.

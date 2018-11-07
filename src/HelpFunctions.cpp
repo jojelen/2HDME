@@ -214,7 +214,7 @@ void Timer::printDuration() const
   int hours = (int)floor(min / 60);
   min %= 60;
   seconds = seconds - 60 * 60 * hours - 60 * min;
-  printf(_message.c_str());
+  printf("%s", _message.c_str());
   printf(" %i h %i m %.3f s.\n", hours, min, seconds);
 }
 

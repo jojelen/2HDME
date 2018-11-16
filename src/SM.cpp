@@ -25,7 +25,7 @@ namespace THDME
  *
  *   The Higgs coupling is taken from arXiv:1307.3536v4.
  *
- * Used the tree-lvl relation v = 246 GeV.
+ *   Used the tree-lvl relation v ~ 246 GeV.
  *
  *   Gauge couplings are also from arXiv:1307.3536v4. 
  */
@@ -57,12 +57,6 @@ SM::SM()
 SM::~SM()
 {
   // std::cout << "Destroying SM!\n";
-}
-
-bool SM::evolve_to(const double mu)
-{
-  _rgeConfig.finalEnergyScale = mu;
-  return evolve();
 }
 
 bool SM::reset(const double y[], const double &renormScale)

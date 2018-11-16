@@ -234,6 +234,12 @@ bool RgeModel::evolve()
   }
 }
 
+bool RgeModel::evolve_to(const double mu)
+{
+  _rgeConfig.finalEnergyScale = mu;
+  return evolve();
+}
+
 bool RgeModel::take_ode_step(double &t, const double &ti, double y[])
 {
   int status = gsl_odeiv2_driver_apply(_odeDriver, &t, ti, y);

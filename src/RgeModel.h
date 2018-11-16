@@ -123,8 +123,12 @@ public:
    * 
    * It performs checks of stability, unitarity and perturbativity along the 
    * RG running.
+   * 
+   * evolve_to(mu) simply sets the _rgeConfig.finalEnergyScale to mu before 
+   * evolving.
    */
   bool evolve();
+  bool evolve_to(const double mu);
 
   /**
    * @brief: Saves the current state of the model

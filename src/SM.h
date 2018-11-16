@@ -26,8 +26,6 @@ public:
   SM();
   ~SM();
 
-  bool evolve_to(const double mu);
-
   double get_v2() const;
   std::vector<double> get_gauge_couplings() const;
   std::vector<double> get_mup() const;

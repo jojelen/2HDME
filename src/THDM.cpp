@@ -522,8 +522,9 @@ void THDM::set_yukawa_type(const Z2symmetry &z2)
 
 Z2symmetry THDM::get_yukawa_type() const { return _z2_symmetry; }
 
-void THDM::set_yukawa_aligned(const double &aU, const double &aD,
-                              const double &aL)
+void THDM::set_yukawa_aligned(const std::complex<double> &aU,
+                              const std::complex<double> &aD,
+                              const std::complex<double> &aL)
 {
   _z2_symmetry = NO_SYMMETRY;
 
@@ -1450,11 +1451,10 @@ vector<Eigen::Matrix3cd> THDM::get_yukawa_eta() const
                                   _eta2U, _eta2D, _eta2L};
 }
 
-vector<double> THDM::get_vevs() const
+vector<std::complex<double>> THDM::get_vevs() const
 {
   double v = sqrt(_v2);
-  return vector<double>{cos(_base_generic.beta) * v,
-                        sin(_base_generic.beta) * v};
+  return vector<std::complex<double>>{_vhat[0] * v, _vhat[1] * v};
 }
 
 vector<double> THDM::get_mup() const

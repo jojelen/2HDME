@@ -33,12 +33,14 @@
 #include <tuple>
 #include <vector>
 
-namespace THDME {
+namespace THDME
+{
 
 /**
  * @brief: General complex two-Higgs doublet model
  */
-class THDM : public RgeModel {
+class THDM : public RgeModel
+{
 public:
   /**
    * @brief: SM constructor
@@ -130,7 +132,9 @@ public:
    * @brief: Sets flavor aligned Yukawa sector
    *
    */
-  void set_yukawa_aligned(const double &aU, const double &aD, const double &aL);
+  void set_yukawa_aligned(const std::complex<double> &aU,
+                          const std::complex<double> &aD,
+                          const std::complex<double> &aL);
 
   std::vector<std::complex<double>> get_aF() const;
   /**
@@ -242,7 +246,6 @@ public:
    */
   void print_all() const override;
 
-  
   /*------------------------------------------------------------------------*/
 
   /**
@@ -302,7 +305,7 @@ public:
   std::vector<double> get_ml() const;
   Eigen::Matrix3cd get_vCkm() const;
   std::vector<Eigen::Matrix3cd> get_yukawa_eta() const;
-  std::vector<double> get_vevs() const;
+  std::vector<std::complex<double>> get_vevs() const;
   std::vector<double> get_higgs_treeLvl_masses() const;
   std::complex<double> get_z2_breaking_quantity() const;
 
@@ -316,12 +319,12 @@ public:
   std::tuple<std::string, int, int, std::complex<double>>
   get_largest_nonDiagonal_lamF() const;
 
-  // Returns a specific lambda_ij Yukawa element 
+  // Returns a specific lambda_ij Yukawa element
   double get_lamF_element(const FermionSector flavor, const int i,
                           const int j) const;
   // Or a complete matrix
   Eigen::Matrix3cd get_lamF(const FermionSector flavor) const;
-  
+
   /**
    * @brief: Prints to console
    */
@@ -375,7 +378,7 @@ public:
    * @brief: Writes a SLHA file
    *
    * Writes all the information of the THDM to a SLHA file.
-   * 
+   *
    * The SLHA file can be used as input to SPheno.
    *
    * sphenoLoopLvl determines the loop level of pole mass calculations in
@@ -426,8 +429,6 @@ public:
    */
   void generate_random_soft_cp_conserved_potential(const int loopLvl,
                                                    const gsl_rng *rng);
-
-  
 
 private:
   /* Sets the kappa matrices to be diagonal proportional to the fermion
@@ -509,8 +510,8 @@ private:
   double _mHc;   // Tree-lvl charged Higgs mass
 
   // @params: Standard model parameters
-  Eigen::Matrix3cd _VCKM; // CKM matrix
-  double _g1, _g2, _g3;   // gauge couplings ( U(1)_Y, SU(2)_W, SU(3)_c )
+  Eigen::Matrix3cd _VCKM;          // CKM matrix
+  double _g1, _g2, _g3;            // gauge couplings ( U(1)_Y, SU(2)_W, SU(3)_c )
   double _mup[3], _mdn[3], _ml[3]; // Tree-lvl fermion masses
 
 #ifdef SPHENO

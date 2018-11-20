@@ -74,7 +74,7 @@ public:
    *
    * @returns true if the parameters are set correctly.
    */
-  bool set_param_higgs(const Base_higgs &in);
+  bool set_param_higgs(const Base_higgs &in, const bool enforceTadpole = true);
   Base_higgs get_param_higgs() const;
 
   /**
@@ -85,7 +85,8 @@ public:
    *
    * @returns true if the parameters are set correctly.
    */
-  bool set_param_hybrid(const Base_hybrid &hyb);
+  bool set_param_hybrid(const Base_hybrid &hyb,
+                        const bool enforceTadpole = true);
   Base_hybrid get_param_hybrid() const;
 
   /**
@@ -93,7 +94,8 @@ public:
    *
    * @returns true if the parameters are set correctly.
    */
-  bool set_param_invariant(const Base_invariant &inv);
+  bool set_param_invariant(const Base_invariant &inv,
+                           const bool enforceTadpole = true);
   Base_invariant get_param_invariant() const;
 
   /**

@@ -97,9 +97,9 @@ bool THDM::set_param_gen(const Base_generic &in, const bool enforceTadpole)
 
 Base_generic THDM::get_param_gen() const { return _base_generic; }
 
-bool THDM::set_param_higgs(const Base_higgs &in)
+bool THDM::set_param_higgs(const Base_higgs &in, const bool enforceTadpole)
 {
-  return set_param_gen(in.convert_to_generic());
+  return set_param_gen(in.convert_to_generic(),enforceTadpole);
 }
 
 Base_higgs THDM::get_param_higgs() const
@@ -108,15 +108,15 @@ Base_higgs THDM::get_param_higgs() const
 }
 
 // CP invariant and Z2 symmetric basis (all parameters are real)
-bool THDM::set_param_hybrid(const Base_hybrid &hyb)
+bool THDM::set_param_hybrid(const Base_hybrid &hyb, const bool enforceTadpole)
 {
-  return set_param_gen(hyb.convert_to_generic(_v2));
+  return set_param_gen(hyb.convert_to_generic(_v2),enforceTadpole);
 }
 
-bool THDM::set_param_invariant(const Base_invariant &inv)
+bool THDM::set_param_invariant(const Base_invariant &inv, const bool enforceTadpole)
 {
 
-  return set_param_gen(inv.convert_to_generic(_v2));
+  return set_param_gen(inv.convert_to_generic(_v2),enforceTadpole);
 }
 
 Base_invariant THDM::get_param_invariant() const
@@ -191,7 +191,7 @@ bool THDM::fix_treeLvl_tadpole_eqs()
   double tanb = tan(_base_generic.beta);
   double cotb = 1. / tanb;
 
-  // Tree-lvl minimum from eq.(A4-A5) in PhysRevD.72.035004
+  // Tree-lvl minimum from eq.(A4-A5) and eq.(A7) in PhysRevD.72.035004
   if (abs(_base_generic.beta) > _MACHINE_PRECISION)
   {
     if (tanb < 1.E-3)
@@ -199,36 +199,8 @@ bool THDM::fix_treeLvl_tadpole_eqs()
           << "Very low tanb!"
           << "This results in very large masses from tadpole requirements.\n";
 
-    _base_generic.M112 = real(
-        _base_generic.M12 * std::polar(1., _base_generic.xi) * tanb -
-        0.5 * _v2 *
-            (_base_generic.Lambda1 * cosb * cosb +
-             (_base_generic.Lambda3 + _base_generic.Lambda4 +
-              _base_generic.Lambda5 * std::polar(1., 2. * _base_generic.xi)) *
-                 sinb * sinb +
-             (2. * _base_generic.Lambda6 * std::polar(1., _base_generic.xi) +
-              conj(_base_generic.Lambda6) * std::polar(1., -_base_generic.xi)) *
-                 sinb * cosb +
-             _base_generic.Lambda7 * sinb * sinb * tanb *
-                 std::polar(1., _base_generic.xi)));
-
-    _base_generic.M222 =
-        real(conj(_base_generic.M12 * std::polar(1., _base_generic.xi)) * cotb -
-             0.5 * _v2 *
-                 (_base_generic.Lambda2 * sinb * sinb +
-                  (_base_generic.Lambda3 + _base_generic.Lambda4 +
-                   conj(_base_generic.Lambda5) *
-                       std::polar(1., -2. * _base_generic.xi)) *
-                      cosb * cosb +
-                  (_base_generic.Lambda7 * std::polar(1., _base_generic.xi) +
-                   2. * conj(_base_generic.Lambda7) *
-                       std::polar(1., -_base_generic.xi)) *
-                      sinb * cosb +
-                  conj(_base_generic.Lambda6) * cosb * cosb *
-                      std::polar(1., -_base_generic.xi) * cotb));
-
-    // We also solve eq.(A7) in PhysRevD.72.035004 numerically
-    // M12 must be non-zero.
+    // We solve eq.(A7) in PhysRevD.72.035004 numerically
+    // M12 must be non-zero, otherwise xi is set to zero
     if (std::abs(_base_generic.M12) > 1e-6)
     {
       // Using Newton's method to find xi that solves f = 0
@@ -286,6 +258,36 @@ bool THDM::fix_treeLvl_tadpole_eqs()
 
       _base_generic.xi = xi;
     }
+    else
+      _base_generic.xi = 0.;
+
+    _base_generic.M112 = real(
+        _base_generic.M12 * std::polar(1., _base_generic.xi) * tanb -
+        0.5 * _v2 *
+            (_base_generic.Lambda1 * cosb * cosb +
+             (_base_generic.Lambda3 + _base_generic.Lambda4 +
+              _base_generic.Lambda5 * std::polar(1., 2. * _base_generic.xi)) *
+                 sinb * sinb +
+             (2. * _base_generic.Lambda6 * std::polar(1., _base_generic.xi) +
+              conj(_base_generic.Lambda6) * std::polar(1., -_base_generic.xi)) *
+                 sinb * cosb +
+             _base_generic.Lambda7 * sinb * sinb * tanb *
+                 std::polar(1., _base_generic.xi)));
+
+    _base_generic.M222 =
+        real(conj(_base_generic.M12 * std::polar(1., _base_generic.xi)) * cotb -
+             0.5 * _v2 *
+                 (_base_generic.Lambda2 * sinb * sinb +
+                  (_base_generic.Lambda3 + _base_generic.Lambda4 +
+                   conj(_base_generic.Lambda5) *
+                       std::polar(1., -2. * _base_generic.xi)) *
+                      cosb * cosb +
+                  (_base_generic.Lambda7 * std::polar(1., _base_generic.xi) +
+                   2. * conj(_base_generic.Lambda7) *
+                       std::polar(1., -_base_generic.xi)) *
+                      sinb * cosb +
+                  conj(_base_generic.Lambda6) * cosb * cosb *
+                      std::polar(1., -_base_generic.xi) * cotb));
   }
   else
   {

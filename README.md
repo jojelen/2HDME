@@ -4,6 +4,39 @@
 general 2HDM in renormalization energy scale, by solving the 1- or 2-loop
 Renormalization Group Equations (RGEs).
 
+The purpose of **2HDME** is to provide an API that consists of methods to 
+manipulate a 2HDM model; thus the idea is that the user should write their own 
+executable code that uses the THDM class of **2HDME**. An example is included
+in *src/demos/DemoRGE.cpp*.
+
+### Manual
+
+A more detailed description of the program's structure, its classes and some of 
+their functions can be found in the user manual at 
+[https://arxiv.org/abs/1811.08215]. It also contains a very brief review of the
+physics; a more in depth discussion of how **2HDME** can be used to perform
+a RGE analysis of the 2HDM can be found in arXiv:1810.02588.
+
+The source code is also fairly well documented; the header files contain 
+comments about the classes and their functions.   
+
+### Brief program structure summary
+
+Inheritance structure:
+    BaseModel -> RgeModel -> THDM
+    BaseModel -> RgeModel -> SM
+The main class of **2HDME** is THDM. It inherits RG evolution functionality
+from RgeModel; which inherits basic input/output functionalities from BaseModel.
+It requires a SM object to set up some of its parameters. The SM class also
+inherits in the same way.
+
+Both THDM and SM have their own set of RGEs which are specified in RGE.cpp.
+
+All the scalar potential bases that are implemented are defined in 
+*THDM_bases.cpp*.
+
+See the manual for more details.
+
 ## Installation instructions
 
 ### Requirements 
@@ -73,13 +106,16 @@ the *Makefile*.
 See *DemoRGE* for an example of how to compute loop corrected masses with
 **SPheno**. 
 
+
 ********************************************************************************
 
 ## Authors
 
 Joel Oredsson ( joel_ored@hotmail.com )
 
-### Citing Please cite [arXiv:1810.02588] if you use this program for a
+### Citing 
+
+Please cite [arXiv:1810.02588,1811.08215] if you use this program for a
 publication.  And if you use the SPheno functionality with the model files that
 are generated with SARAH, please cite the relevant papers as it says in
 [spheno.hepforge.org] and [sarah.hepforge.org].
@@ -90,7 +126,7 @@ This project started off as an extension of **2HDMC**
 [https://2hdmc.hepforge.org/]; therefore, the architectures of the two APIs are
 very similar. 
 
-I would like to thank my PhD supervisor, Johan Rathsman, for support.
+This work has been done in collaboration with Johan Rathsman.
 
 ## License
 

@@ -109,6 +109,38 @@ See *DemoRGE* for an example of how to compute loop corrected masses with
 
 ********************************************************************************
 
+## Source code description
+
+Directories:
+
+* *SPhenoModelFiles*: Contains output from **SARAH** that should be used if one
+wants to link SPheno.
+* *src*: Source code
+* *src/demos*: Short demo applications that use 2HDME.
+* *src/RGEs*: Header files that contain the RGEs for 2HDM and SM in separate 
+files.
+
+Files in *src*:
+* *BaseModel* (.h and .cpp): Abstract base class that RgeModel inherits from.
+* *FileSystem* (.h and .cpp): Class that handles I/O to files.
+* *GnuPlotSystem* (.h and .cpp): Class that can create gnuplot scripts and execute
+commands that exports postscript plots.
+* *HelpFunctions* (.h and .cpp): Miscellaneous structs and functions. Contains a 
+class that is used to print tables to the console.
+* *LoggingSystem* (.h and .cpp): Class that I/O to console for BaseModel
+classes.
+* *RGE* (.h and .cpp): Functions that calculate the RGEs that are contained in 
+*src/RGEs*.
+* *RgeModel* (.h and .cpp): Class that handles the RG evolution functionality for
+derived classes. Inherits from BaseModel.
+* *SM* (.h and .cpp): Class for standard model. Inherits from RgeModel.
+* *SPheno* (.h and .cpp): Class that acts as a wrapper to SPheno.
+* *Structures* (.h and .cpp): Miscellaneous structs.
+* *THDM_bases* (.h and .cpp): Contains structs that are different 
+parameterizations of the 2HDM scalar potential. They have functions that 
+transform them into eachother.
+* *THDM* (.h and .cpp): Class that represents the 2HDM. Inherits from RgeModel.
+
 ## Authors
 
 Joel Oredsson ( joel_ored@hotmail.com )

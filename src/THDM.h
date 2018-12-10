@@ -24,10 +24,6 @@
 #include "SPheno.h"
 #endif
 
-#ifdef HiggsBounds
-#include "HBHS.h"
-#endif
-
 #include <Eigen/Dense>
 #include <complex>
 #include <tuple>
@@ -251,13 +247,6 @@ public:
   /*------------------------------------------------------------------------*/
 
   /**
-   * @brief: Checks tree_lvl tadpole equations.
-   *
-   * @returns true if it is satisfied and false otherwise.
-   */
-  bool satisfies_tadpole_eqs() const;
-
-  /**
    * @brief: Checks if the 2HDM potential is CP violating.
    *
    *   Checks the base invariant CP quantities in hep-ph/0506227 that should
@@ -357,14 +346,6 @@ public:
   void print_spheno_results() const;
 #endif
 
-//----------------------------------------------------------------------------
-/**
- * @brief: HiggsBounds and HiggsSignals
- */
-#ifdef HiggsBounds
-  void run_higgsBoundsSignals();
-  bool is_allowed_by_HBHS() const;
-#endif
 
   //----------------------------------------------------------------------------
 
@@ -410,27 +391,7 @@ public:
    */
   bool calc_treeLvl_masses_and_mixings();
 
-  /**
-   * @brief: Fits Z2 symmetric couplings to yield mh = 125 GeV
-   *
-   * Starting from current parameters, tries to fit potential parameters to
-   * yield correct Higgs mass.
-   *
-   * loopLvl sets what level of quantum corrected mass is being fitted.
-   *   0 = tree-lvl
-   *   1 = 1-loop calculated with SPheno
-   *   2 = Include some 2-loop contributions for neutral Higgs, also done by
-   *   SPheno.
-   */
-  void fit_higgs_mass(const int loopLvl);
 
-  /**
-   * @brief: Sets random potential parameters
-   *
-   * If rng = nullptr, a gsl rng is created and seeded.
-   */
-  void generate_random_soft_cp_conserved_potential(const int loopLvl,
-                                                   const gsl_rng *rng);
 
 private:
   /* Sets the kappa matrices to be diagonal proportional to the fermion
@@ -518,11 +479,6 @@ private:
 
 #ifdef SPHENO
   Spheno _spheno; // Class that handles SPheno calculations
-#endif
-
-// Class that handles Higgs bounds/signals
-#ifdef HiggsBounds
-  HiggsBoundsSignals _hbhs;
 #endif
 
   // FileSystem handles all the output to files.

@@ -17,17 +17,6 @@
 #include "GnuPlotSystem.h"
 #endif
 
-#ifdef HiggsBounds
-#include "Constraints.h"
-#include "DecayTable.h"
-#include "HBHS.h"
-#include "THDM.h"
-#endif
-
-#ifdef MINUIT
-#include "THDM_fitter.h"
-#endif
-
 #include <Eigen/Dense>
 #include <algorithm>
 #include <complex>
@@ -859,44 +848,6 @@ bool THDM::is_cp_conserved() const
   return true;
 }
 
-bool THDM::satisfies_tadpole_eqs() const
-{
-  // double minRequirement = 1.E-8;
-
-  // complex<double> temp1 = complex<double>(0., 0.);
-  // complex<double> temp2 = complex<double>(0., 0.);
-
-  // for (int a = 0; a < 2; a++)
-  // {
-  //   temp1 += sqrt(_v2) * conj(_vhat[a]) * (_Y[a][0]);
-  //   temp2 += sqrt(_v2) * conj(_vhat[a]) * (_Y[a][1]);
-  //   for (int c = 0; c < 2; c++)
-  //     for (int d = 0; d < 2; d++)
-  //     {
-  //       temp1 += sqrt(_v2) * conj(_vhat[a]) *
-  //                (0.5 * _v2 * _Z[a][0][c][d] * conj(_vhat[c]) * _vhat[d]);
-  //       temp2 += sqrt(_v2) * conj(_vhat[a]) *
-  //                (0.5 * _v2 * _Z[a][1][c][d] * conj(_vhat[c]) * _vhat[d]);
-  //     }
-  // }
-
-  // if (std::abs(temp1) > minRequirement || std::abs(temp2) > minRequirement ||
-  //     abs(higgs.Y1 + higgs.Z1 * _v2 / 2.) > minRequirement ||
-  //     std::abs(higgs.Y3 + higgs.Z6 * _v2 / 2.) > minRequirement)
-  // {
-  //   _console.info << "Tadpole generic 1 = " << std::abs(temp1) << std::endl;
-  //   _console.info << "Tadpole generic 2 = " << std::abs(temp2) << std::endl;
-  //   _console.info << "Tadpole higgs 1 = " << higgs.Y1 + higgs.Z1 * _v2 / 2.
-  //   << std::endl; _console.info << "Tadpole higgs 2 = " << std::abs(higgs.Y3
-  //   + higgs.Z6 * _v2 / 2.)
-  //                 << std::endl;
-  //   _console.warning << "[WARNING]: Tree-level tadpole equations violated!
-  //   \n"; return false;
-  // }
-  // _console.info << "Tadpole equations satisfied!\n";
-  return true;
-}
-
 bool THDM::enforce_z2Symmetric_potential(const bool soft)
 {
 
@@ -1017,9 +968,6 @@ void THDM::print_features() const
   check("Unitary (tree-lvl): ", is_unitary());
   check("Stable (tree-lvl): ", is_stable());
   check("Stable (tree-lvl, z2sym): ", is_stable_z2sym());
-#if defined HiggsBounds
-  _hbhs.print_allowed_status();
-#endif
 
   print_rgeResults();
 }
@@ -1052,9 +1000,6 @@ void THDM::print_all() const
   print_neutral_higgs_eigenVectors();
 #ifdef SPHENO
   _spheno.print();
-#endif
-#if defined HiggsBounds
-  _hbhs.print(); // HiggsBounds and HiggsSignals results
 #endif
   print_CKM();
   print_yukawa();
@@ -1843,39 +1788,6 @@ void THDM::write_to_data_files(const double &t)
   _files.add_line(_massesFile, masses);
 }
 
-void THDM::fit_higgs_mass(const int loopLvl)
-{
-#ifdef MINUIT
-  Base_generic gen = fit_to_125mh(*this, loopLvl);
-  gen.beta = _base_generic.beta;
-  // gen.M12 = _base_generic.M12;
-  gen.Lambda6 = _base_generic.Lambda6;
-  gen.Lambda7 = _base_generic.Lambda7;
-
-  set_param_gen(gen);
-
-#endif
-}
-void THDM::generate_random_soft_cp_conserved_potential(const int loopLvl,
-                                                       const gsl_rng *rng)
-{
-#ifdef MINUIT
-  if (rng == nullptr)
-  {
-    gsl_rng *rng_temp = gsl_rng_alloc(gsl_rng_taus2);
-    int seed = time(0) + 54 * 3715291;
-    gsl_rng_set(rng_temp, seed);
-
-    Base_generic gen = random_fitted_base_generic(*this, loopLvl, rng_temp);
-
-    std::cout << "Random fitted base_generic = " << gen << std::endl; // DEBUG
-    set_param_gen(gen);
-
-    gsl_rng_free(rng_temp);
-  }
-#endif
-}
-
 #ifdef SPHENO
 bool THDM::run_spheno(const int massLoopLvl)
 {
@@ -1891,73 +1803,6 @@ void THDM::print_spheno_results() const { _spheno.print(); }
 
 #endif
 
-#ifdef HiggsBounds
-void THDM::run_higgsBoundsSignals()
-{
-
-  if (!is_cp_conserved())
-  {
-    _console.error << "[ERROR]: Higgs bounds/signals calculation is not "
-                      "implemented for CP violating 2HDM.\n";
-    return;
-  }
-
-  vector<double> sphenoOutput = _spheno.get_output();
-
-  if (sphenoOutput.size() < 4 || sphenoOutput[0] == 0.)
-  {
-    _console.error << "[ERROR]: Wrong spheno output.\n";
-    return;
-  }
-  double mh_in = sphenoOutput[0];
-  double mH_in = sphenoOutput[1];
-  double mA_in = sphenoOutput[2];
-  double mHp_in = sphenoOutput[3];
-  Base_hybrid hyb = get_param_hybrid();
-  double sba_in = std::sqrt(1. - hyb.cba * hyb.cba);
-  double l6_in = real(_base_generic.Lambda6);
-  double l7_in = real(_base_generic.Lambda7);
-  double m12_2_in = real(_base_generic.M12);
-  double tb_in = tan(_base_generic.beta);
-  int yt_in = (int)_z2_symmetry;
-
-  _console.info << "Running HiggsBounds/Signals...\n";
-
-  // Disables printf and cout
-  // fpos_t pos;
-  // fgetpos(stdout, &pos);  // save the position in the file stream
-  // int fd = dup(fileno(stdout));  // use the dup() function to create a copy
-  // of stdout freopen("higgsBoundsSignals_output.txt", "w", stdout);  //
-  // redirect stdout
-
-  thdmc::THDM model;
-  thdmc::SM sm;
-  model.set_sm(sm);
-
-  bool pset = model.set_param_phys(mh_in, mH_in, mA_in, mHp_in, sba_in, l6_in,
-                                   l7_in, m12_2_in, tb_in);
-
-  if (!pset)
-  {
-    _console.warning
-        << "[WARNING]: Invalid parameters for HiggsBounds/Signals\n";
-    return;
-  }
-
-  model.set_yukawas_type(yt_in);
-
-  _hbhs.run(model);
-
-  // restore the stdout
-  // fflush(stdout);
-  // dup2(fd, fileno(stdout));
-  // close(fd);
-  // clearerr(stdout);
-  // fsetpos(stdout, &pos); // move to the correct position
-}
-
-bool THDM::is_allowed_by_HBHS() const { return _hbhs.is_allowed(); }
-#endif
 
 void THDM::write_slha_file(const int sphenoLoopLvl, const string &file) const
 {

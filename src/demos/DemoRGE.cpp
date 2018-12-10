@@ -37,13 +37,13 @@ int main(int argc, char *argv[])
   // THDM_bases. Here we specify a Z2 symmetric CP conserving generic basis.
   Base_generic gen;
 
-  gen.beta = 1.46713; // tanb =  9.61166
-  gen.M12 = std::complex<double>(3132.85, 0.);
-  gen.Lambda1 = 0.413702;
-  gen.Lambda2 = 0.263926;
-  gen.Lambda3 = 0.13313;
-  gen.Lambda4 = -0.0444794;
-  gen.Lambda5 = std::complex<double>(0.29586, 0.);
+  gen.beta =  1.18997; // tanb =  2.49772
+  gen.M12 = std::complex<double> ( 72993.4, 0.);
+  gen.Lambda1 =  0.467183;
+  gen.Lambda2 =  0.394626;
+  gen.Lambda3 =  -0.165783;
+  gen.Lambda4 =  0.159849;
+  gen.Lambda5 = std::complex<double>( -0.245042, 0.);
   gen.Lambda6 = std::complex<double>(0., 0.);
   gen.Lambda7 = std::complex<double>(0., 0.);
 
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
   // One can also write a SLHA file of the THDM and SM
   sm.write_slha_file();
   int sphenoLoopOrder = 0; // Loop order for mass calculations if SPheno is used
-  thdm.write_slha_file(sphenoLoopOrder);
+  thdm.write_slha_file(sphenoLoopOrder, "DemoRGE_SLHA");
 
   // The options for evolving a THDM object can configured by specifying a
   // RgeConfig struct:

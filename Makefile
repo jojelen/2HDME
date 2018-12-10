@@ -12,9 +12,9 @@
 # the 2-loop RGEs ( ~10 min on a laptop).
 #
 # The source code is written in C++11 and uses the packages:
+#   GNUPLOT: For simple plotting. (comment relevant lines to disable)
 #   gsl: For mathematical functions and solving ODEs.
 #   Eigen: For linear algebra.
-#   gtkmm-3.0: For a graphical user interface. This is only used by GUI.cpp.
 #
 ################################################################################
 
@@ -50,30 +50,9 @@ LIBS=
 DEMOS=DemoRGE DemoSM
 PROG=
 
-# Comment these line to not compile the GUI
-# The gtkmm-3.0 library is required for the GUI.
-# CFLAGS+=`pkg-config gtkmm-3.0 --cflags --libs` 
-# LDFLAGS+=`pkg-config gtkmm-3.0 --cflags --libs`
-# SOURCES+=GUI.cpp
-# PROG+=ThdmcGui
-
 # Comment to disable GNU-Plot
 CFLAGS+=-DGNUPLOT
 RGESRC+=GnuPlotSystem.cpp
-
-# To use HiggsBounds/HiggsSignals for Higgs constraints, put the corresponding 
-# libraries in the "lib" subdirectory and uncomment the following lines.
-# Note that both programs: HiggsBounds (> 4.2.0) and HiggsSignals (> 1.4.0) 
-# must be present
-# CFLAGS+=-DHiggsBounds
-# LDFLAGS+=-L$(LIBDIR) -lHS -lHB -lgfortran
-# SOURCES+=HBHS.cpp
-
-# To enable Minuit functionality
-# CFLAGS+=-DMINUIT
-# CFLAGS+=-I /home/jojelen/Cpp/libs/Minuit2-5.34.14/inc
-# LDFLAGS+=-L/home/jojelen/Cpp/libs/Minuit2-5.34.14/src/.libs -lMinuit2 -fopenmp
-# RGESRC+=THDM_fitter.cpp
 
 # To enable SPheno functionality
 # CFLAGS+=-DSPHENO

@@ -40,7 +40,8 @@ BINDIR=bin
 # Source code:
 RGESRC=BaseModel.cpp RgeModel.cpp THDM.cpp RGE.cpp \
 HelpFunctions.cpp FileSystem.cpp LoggingSystem.cpp SM.cpp\
-THDM_bases.cpp Structures.cpp
+THDM_bases.cpp Structures.cpp Globals.cpp GslIntegration.cpp\
+SLHA.cpp Oblique.cpp
 OBJECTS=$(RGESRC:.cpp=.o)
 
 LIB=lib2HDME.a

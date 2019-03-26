@@ -6,14 +6,13 @@
  * @author: Joel Oredsson
  *
  * Derived class:
- *  BaseModel -> RgeModel -> THDM
+ *  BaseModel <- RgeModel <- THDM
  *
  * Example usage: See DemoRGE.cpp
  *
  *============================================================================*/
 #pragma once
 
-#include "HelpFunctions.h"
 #include "LoggingSystem.h"
 #include "RgeModel.h"
 #include "SM.h"
@@ -29,14 +28,12 @@
 #include <tuple>
 #include <vector>
 
-namespace THDME
-{
+namespace THDME {
 
 /**
  * @brief: General complex two-Higgs doublet model
  */
-class THDM : public RgeModel
-{
+class THDM : public RgeModel {
 public:
   /**
    * @brief: SM constructor
@@ -48,14 +45,52 @@ public:
   THDM(const SM &sm);
 
   /**
-   * @brief: Copy Constructor
+   * @brief: Copy and assignment constructor
    *
    * Calls set_from_thdm() that copies a thdm.
    */
   THDM(const THDM &thdm);
+  THDM &operator=(const THDM &thdm);
   void set_from_thdm(const THDM &thdm);
 
   ~THDM();
+
+  //---------------------------------------------------------------------------
+  // Setting the Standard Model parameters
+  //---------------------------------------------------------------------------
+
+  /**
+   * @brief: Sets SM parameters.
+   *
+   * Matches 2HDM to the given SM. Sets the squared VEV and gauge couplings.
+   * From the CKM matrix and the fermion masses, it calculates the Yukawa
+   * matrices.
+   * 
+   * @params:
+   *   mu: Renormalization scale at which the THDM is defined.
+   *   v2: Squared VEV.
+   *   g_i: gauge couplings g1, g2, g3.
+   *   mup, mdn, ml: Fermion masses.
+   *   VCKM: CKM matrix.
+   */
+  void set_sm(const SM &sm);
+  void set_sm(const double &mu, const double &v2, const std::vector<double> &g_i,
+              const std::vector<double> &mup, const std::vector<double> &mdn,
+              const std::vector<double> &ml, const Eigen::Matrix3cd &VCKM);
+
+  /**
+   * @brief: Simple functions to set/get specific values manually:
+   */
+  void set_v2(const double &v2);
+  void set_gauge_couplings(const std::vector<double> &coupling);
+  void set_fermion_masses(const std::vector<double> &mup,
+                          const std::vector<double> &mdn,
+                          const std::vector<double> &ml);
+  void set_vCkm(const Eigen::Matrix3cd &VCKM);
+
+  //---------------------------------------------------------------------------
+  // Setting the scalar potential
+  //---------------------------------------------------------------------------
 
   /**
    * @brief: Initializes the 2HDM from a Base_generic.
@@ -115,7 +150,12 @@ public:
    */
   bool delete_imag_parts();
 
-  /** @brief: Fixes the Yukawa sector based on a Z2 symmetry.
+  //---------------------------------------------------------------------------
+  // Setting the Yukawa sector
+  //---------------------------------------------------------------------------
+
+  /**
+   * @brief: Fixes the Yukawa sector based on a Z2 symmetry.
    *
    * Sets/gets the Yukawa matrices according to the given Z2symmetry that is
    * either NO_SYMMETRY, TYPE_I, TYPE_II, TYPE_III, TYPE_IV.
@@ -273,21 +313,59 @@ public:
   bool is_pert_unit_stab() const;
 
   /**
-   * @brief: Sets SM parameters.
+   * @brief Higgs coupling q_{ki} factors
    *
-   * Matches 2HDM to the given SM.
+   * This method returns the invariants q_{ki} hep-ph/0602242
+   * which are used for the triple and quartic Higgs couplings.
+   *
+   * @params:
+   *   k Higgs index (1--4)
+   *   i Coupling index (1--2)
+   *
+   * @returns The value of the coefficient q_{ki}
    */
-  void set_sm(const SM &sm);
+  std::complex<double> get_qki(int k, int i) const;
+  // Retrievies base invariant angles that can be found for example in
+  // arXiv:1011.6188.
+  // qi12 and qi22 refers to q_{i1}^2 and |q_{i2}|^2 respectively.
+  std::vector<std::complex<double>> get_qij() const; // (qi1, qi2) 8 components
+  std::vector<double> get_qi12() const;
+  std::vector<double> get_qi22() const;
+
+  // Retrieve couplings to fermions:
+  // The 3x3 matrix is the coupling of (h_i ff) and is diagonal in cases of no
+  // FCNCs.
+  Eigen::Matrix3cd get_huu(int i) const;
+  Eigen::Matrix3cd get_hdd(int i) const;
+  Eigen::Matrix3cd get_hll(int i) const;
+  // Coupling matrices of (h_i f igamma_5 f), i.e. the axial current.
+  Eigen::Matrix3cd get_huu_axial(int i) const;
+  Eigen::Matrix3cd get_hdd_axial(int i) const;
+  Eigen::Matrix3cd get_hll_axial(int i) const;
 
   /**
-   * @brief: Simple functions to set/get specific values manually:
+   * @brief: Retrieves all the fermion couplings
+   *
+   * Components:
+   * h_1uu, h_1uu_axial, h_1dd, h_1 dd_axial, h_1 ll, h_1 ll_axial
+   * + h_2 and h_3. Total of 18 matrices.
+   *
+   * The normalized ones are multiplied by a v/sqrt(mf_i mf_j) factor!
    */
-  void set_v2(const double &v2);
-  void set_gauge_couplings(const std::vector<double> &coupling);
-  void set_fermion_masses(const std::vector<double> &mup,
-                          const std::vector<double> &mdn,
-                          const std::vector<double> &ml);
-  void set_vCkm(const Eigen::Matrix3cd &VCKM);
+  std::vector<Eigen::Matrix3cd> get_fermion_couplings() const;
+  std::vector<Eigen::Matrix3cd> get_fermion_couplings_normalized() const;
+
+  /**
+   * @brief: Retrieves the coupling of h_i to the WW and ZZ bosons
+   *
+   *  Parameterized as in eq.2.7 of arXiv:1503.01114v2, i.e. the a_i
+   *   Lagrangian = a_i h_i ( 2 (mW^2) WW + mZ^2 ZZ)/v.
+   *
+   *  @returns a_i.
+   */
+  std::vector<double> get_VV_couplings() const;     // a_i
+  std::complex<double> get_hvv(int h, int v) const; // the full coupling
+  void get_coupling_vvh(int v1, int v2, int h, std::complex<double> &c) const;
 
   double get_v2() const;
   std::vector<double> get_gauge_couplings() const;
@@ -295,10 +373,13 @@ public:
   std::vector<double> get_mdn() const;
   std::vector<double> get_ml() const;
   Eigen::Matrix3cd get_vCkm() const;
+  std::vector<Eigen::Matrix3cd> get_yukawa_rho() const;
   std::vector<Eigen::Matrix3cd> get_yukawa_eta() const;
+  std::vector<Eigen::Matrix3cd> get_yukawa_kF_rF() const;
   std::vector<std::complex<double>> get_vevs() const;
   std::vector<double> get_higgs_treeLvl_masses() const;
   std::complex<double> get_z2_breaking_quantity() const;
+  std::vector<double> get_oblique() const; // returns (S,T,U)
 
   std::tuple<std::string, int, std::complex<double>>
   get_largest_diagonal_rF() const;
@@ -328,6 +409,7 @@ public:
   void print_param_compact() const;
   void print_param_higgs() const;
   void print_features() const;
+  void print_oblique() const;
 
 //----------------------------------------------------------------------------
 /**
@@ -341,11 +423,9 @@ public:
  */
 #ifdef SPHENO
   bool run_spheno(const int massLoopLvl); // @returns false if it failed
-  bool is_within_spheno_limits() const;
   std::vector<double> get_spheno_output() const;
   void print_spheno_results() const;
 #endif
-
 
   //----------------------------------------------------------------------------
 
@@ -369,8 +449,8 @@ public:
    */
   void
   write_slha_file(const int sphenoLoopLvl,
-                  const std::string &file = "LesHouches.in.THDM_GEN") const;
-  bool set_from_slha_file(const std::string &file);
+                  const std::string &fileName = "LesHouches.in.THDM_GEN") const;
+  bool set_from_slha_file(const std::string &fileName);
 
   /**
    * @brief: Prints Higgs boson mass eigenstates
@@ -391,7 +471,112 @@ public:
    */
   bool calc_treeLvl_masses_and_mixings();
 
+  // Similar functions to 2HDMC
+  double get_hmass(int h) const;
 
+  /**
+   * @brief: Couplings of vector bosons to pairs of Higgses
+   *
+   * Calculates the coupling V h_1 h_2 between two physical Higgs states,
+   * specified by h1 and h2, and one vector boson V. Conventions are
+   * according to hep-ph/0602242.
+   *
+   * @params:
+   *   h1 Index of first Higgs boson (1,2,3,4 = h_1,h_2,h_3,H+)
+   *   h2 Index of second Higgs boson (1,2,3,4 = h_1,h_2,h_3,H+)
+   *   v  Index of vector boson (1,2,3 = gamma, Z, W^+)
+   *   c  Returned (std::complex) value for coupling
+   */
+  std::complex<double> get_coupling_vhh(int v, int h1, int h2) const;
+  void get_coupling_vhh(int v, int h1, int h2, std::complex<double> &c) const;
+  std::complex<double> get_coupling_hhh(int h1, int h2, int h3) const;
+  void get_coupling_hhh(int h1, int h2, int h3, std::complex<double> &c) const;
+
+  /**
+   * @brief: Couplings of Higgses to mixed type fermions
+   *
+   * Calculates the coupling hdu between one physical Higgs state,
+   * specified by h (only relevant one is charged Higgs), and two quarks
+   * f1 and f2.
+   * 
+   * Includes QCD running of Yukawa couplings to the Higgs mass scale.
+   *
+   * @params:
+   *   h  Index of Higgs boson (1,2,3,4 = h_1, h_2, h_3, Hc)
+   *   d Down-type fermion (1,2,3 = d,s,b)
+   *   u Up-type fermion (1,2,3 = u,c,t)
+   *   cs Returned (std::complex) value for scalar coupling
+   *   cp Returned (std::complex) value for pseudoscalar coupling
+   */
+  void get_coupling_hdu(int h, int d, int u, std::complex<double> &cs,
+                        std::complex<double> &cp) const;
+
+  /**
+   * @brief Couplings of Higgses to down-type fermions
+   *
+   * Calculates the coupling hdd between one physical Higgs state,
+   * specified by h, and two down-type quarks f1 and f2.
+   *
+   * Includes QCD running of Yukawa couplings to the Higgs mass scale.
+   * 
+   * @params:
+   *   h  Index of Higgs boson (1,2,3,4 = h_1, h_2, h_3, Hc)
+   *   f1 First fermion (1,2,3 = d,s,b)
+   *   f2 Second fermion (1,2,3 = d,s,b)
+   *   cs Returned (std::complex) value for scalar coupling
+   *   cp Returned (std::complex) value for pseudoscalar coupling
+   */
+  void get_coupling_hdd(int h, int f1, int f2, std::complex<double> &cs,
+                        std::complex<double> &cp) const;
+
+  /**
+   * @brief Couplings of Higgses to up-type fermions
+   *
+   * Calculates the coupling  huu  between one physical Higgs state,
+   * specified by h, and two up-type quarks f1 and f2.
+   *
+   * Includes QCD running of Yukawa couplings to the Higgs mass scale.
+   * 
+   * @params:
+   *   h  Index of Higgs boson (1,2,3,4 = h_1,h_2,h_3,Hc)
+   *   f1 First fermion (1,2,3 = u,c,t)
+   *   f2 Second fermion (1,2,3 = u,c,t)
+   *   cs Returned (std::complex) value for scalar coupling
+   *   cp Returned (std::complex) value for pseudoscalar coupling
+   */
+  void get_coupling_huu(int h, int f1, int f2, std::complex<double> &cs,
+                        std::complex<double> &cp) const;
+  /**
+   * @brief Couplings of Higgses to charged leptons
+   *
+   * Calculates the coupling  hll  between one physical Higgs state,
+   * specified by h, and two leptons f1 and f2.
+   *
+   * @params:
+   *   h  Index of Higgs boson (1,2,3,4 = h_1,h_2,h_3,H+)
+   *   f1 First fermion (1,2,3 =  e,mu,tau )
+   *   f2 Second fermion (1,2,3 =  e,mu,tau )
+   *   cs Returned (std::complex) value for scalar coupling
+   *   cp Returned (std::complex) value for pseudoscalar coupling
+   */
+  void get_coupling_hll(int h, int f1, int f2, std::complex<double> &cs,
+                        std::complex<double> &cp) const;
+  /**
+   * @brief: Couplings of Higgses to mixed leptons
+   *
+   * Calculates the coupling hlnu_l between one physical Higgs state,
+   * specified by h (only relevant one is charged Higgs), and two leptons
+   * f1 and f2.
+   *
+   * @params:
+   *   h  Index of Higgs boson (1,2,3,4 = h_1,h_2,h_3,Hc)
+   *   l  Charged lepton (1,2,3 =  e,mu,tau)
+   *   n  Neutrino (1,2,3 = nu_e,nu_mu,nu_tau)
+   *   cs Returned (std::complex) value for scalar coupling
+   *   cp Returned (std::complex) value for pseudoscalar coupling
+   */
+  void get_coupling_hln(int h, int l, int n, std::complex<double> &cs,
+                        std::complex<double> &cp) const;
 
 private:
   /* Sets the kappa matrices to be diagonal proportional to the fermion
@@ -449,9 +634,6 @@ private:
   void create_data_files();
   void write_to_data_files(const double &t); // t is renormalization scale
 
-  void fill_y(double y[], const std::string &blockType,
-              std::ifstream &ifStream);
-
 private:
   // @params: 2HDM parameters
 
@@ -473,8 +655,8 @@ private:
   double _mHc;   // Tree-lvl charged Higgs mass
 
   // @params: Standard model parameters
-  Eigen::Matrix3cd _VCKM;          // CKM matrix
-  double _g1, _g2, _g3;            // gauge couplings ( U(1)_Y, SU(2)_W, SU(3)_c )
+  Eigen::Matrix3cd _VCKM; // CKM matrix
+  double _g1, _g2, _g3;   // gauge couplings ( U(1)_Y, SU(2)_W, SU(3)_c )
   double _mup[3], _mdn[3], _ml[3]; // Tree-lvl fermion masses
 
 #ifdef SPHENO

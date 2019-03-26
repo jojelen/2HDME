@@ -14,7 +14,7 @@
  * independent features from its base class BaseModel.
  * 
  * Example of derived classes:
- *  BaseModel -> RgeModel -> THDM
+ *  BaseModel <- RgeModel <- THDM
  * 
  *============================================================================*/
 #pragma once

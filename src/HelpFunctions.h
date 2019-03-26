@@ -11,6 +11,9 @@
  *============================================================================*/
 #pragma once
 
+#include "FileSystem.h"
+#include "THDM.h"
+
 #include <Eigen/Dense>
 #include <chrono>
 #include <complex>
@@ -18,6 +21,7 @@
 #include <gsl/gsl_rng.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -25,8 +29,8 @@ namespace THDME {
 
 /**
  * @brief: Reads number from ifstream
- * 
- * Reads a line from ifStream, 
+ *
+ * Reads a line from ifStream,
  * @returns the wordID'th word as a double;
  */
 double readLine(std::ifstream &ifStream, unsigned int wordID);
@@ -41,7 +45,12 @@ bool create_folder_path(const std::string &path);
 
 bool change_directory(const std::string &cdCommand);
 
+
+
 //------------------------------------------------------------------------------
+
+// LO RG evolution of alphaS=g3^3/4pi
+double alpha_s(const double &mu);
 
 /**
  * @brief Sign function
@@ -67,8 +76,6 @@ void print_prog_bar(const int percent);
  */
 void print_prog_number(const std::string message, const double num);
 
-
-
 //----Time-functions------------------------------------------------------------
 
 /**
@@ -88,7 +95,7 @@ void programTime(bool exact = false);
  * */
 struct Timer {
   Timer();
-  Timer(const std::string &message); 
+  Timer(const std::string &message);
   ~Timer();
 
   std::chrono::time_point<std::chrono::high_resolution_clock> _start, _end;
@@ -111,8 +118,10 @@ std::string date();
 Eigen::Matrix3cd randomMatrix3cd(gsl_rng *rng);
 
 // Converts double to a string with scientific notation for big numbers
-std::string stringAuto(const double &number);
+std::string stringAuto(const double &number, const char *format = nullptr);
 std::string stringAuto(const std::complex<double> &cNumber);
+std::vector<std::string>
+convertToStringVec(const std::vector<double> doubleVec);
 
 int jac(double t, const double y[], double *dfdy, double dfdt[], void *params);
 
@@ -125,6 +134,15 @@ void BiUnitary(Eigen::Matrix3cd &kU, Eigen::Matrix3cd &kD, Eigen::Matrix3cd &kL,
                Eigen::Matrix3cd &rU, Eigen::Matrix3cd &rD, Eigen::Matrix3cd &rL,
                Eigen::Matrix3cd &VCKM, double mup[], double mdn[], double ml[],
                double &v2);
+
+// Returns a Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> for the mass matrix
+// of neutral Higgs bosons. This can then be used to extract eigenvalues
+// or get the rotation matrix.
+Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>
+EigenSolver(double v2, const Base_higgs &higgs);
+
+// Get the rotation matrix of the neutral Higgs boson mass matrix
+Eigen::Matrix3d get_rotation_matrix(double v2, const Base_higgs &higgs);
 
 //------------------------------------------------------------------------------
 
@@ -187,4 +205,37 @@ public:
   static void change_colorMode(const bool mode);
 };
 
-}
+//-----------------------------------------------------------------------------
+
+// OLD METHODS as of 1 feb:
+// void print_evolution_data(FileSystem &fileSystem, const THDM &thdm,
+//                           const std::string modelName);
+
+// void print_misc_data(FileSystem &fileSystem, const THDM &thdm,
+//                      const std::string modelName);
+
+// void print_generic_basis(FileSystem &fileSystem, const THDM &thdm,
+//                          const std::string modelName);
+
+// void print_physical_data_files(FileSystem &fileSystem, const THDM &thdm,
+//                                const std::string modelName);
+
+// void printToFiles(THDM &thdm, const std::string &outputDir,
+//                   const std::string modelName = "");
+
+//-----------------------------------------------------------------------------
+
+/**
+ * @brief: Export functions
+ *
+ * Use export_to_csv to add thdm to a csv file in outoutDir. The modelname is
+ * added to the file name.
+ */
+void export_to_csv(THDM &thdm, const std::string &outputDir,
+                   const std::string modelName = "");
+
+void add_header_to_csv(FileSystem &fileSystem, const std::string modelName);
+void add_to_csv(FileSystem &fileSystem, const THDM &thdm,
+                const std::string modelName);
+
+} // namespace THDME

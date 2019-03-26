@@ -7,7 +7,6 @@
  *============================================================================*/
 #pragma once
 
-#include "HelpFunctions.h"
 #include "THDM_bases.h"
 
 #include <Eigen/Dense>

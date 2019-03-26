@@ -13,6 +13,10 @@
  *============================================================================*/
 #include "SM.h"
 #include "THDM.h"
+#include "HelpFunctions.h"
+#ifdef HiggsBounds
+#include "HBHS.h"
+#endif
 
 #include <complex>
 #include <iostream>
@@ -54,11 +58,16 @@ int main(int argc, char *argv[])
   thdm.set_yukawa_type(TYPE_I);
 
   // Calculates 1-loop masses if SPheno is enabled:
-  #ifdef SPHENO
+  #ifdef SPHENO 
   thdm.run_spheno(1); // Argument is loop lvl (0, 1 or 2).
   #endif
-
+ 
   thdm.print_all();
+
+  #ifdef HiggsBounds
+  std::vector<double> hbhsOutput;
+  HBHS_check(thdm,hbhsOutput);
+  #endif
 
   // One can also write a SLHA file of the THDM and SM
   sm.write_slha_file();

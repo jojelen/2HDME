@@ -7,6 +7,7 @@
  *============================================================================*/
 #include "SM.h"
 #include "HelpFunctions.h"
+#include "Globals.h"
 #include "RGE.h"
 #include <complex>
 #include <string>
@@ -23,7 +24,7 @@ namespace THDME
  *
  *   Fermion masses are taken from arXiv:0712.1419.
  *
- *   The Higgs coupling is taken from arXiv:1307.3536v4.
+ *   The Higgs coupling is taken from arXiv:1307.3536v4. 
  *
  *   Used the tree-lvl relation v ~ 246 GeV.
  *
@@ -51,12 +52,71 @@ SM::SM()
   // flavors. 59 is the number of params in y[].
   init_rge_systems(rgeFuncSm_1loop, rgeFuncSm_2loop, 59);
 
-  init_yukawa_sector();
+  // Using the MS-bar fermion masses at scale Mt from arXiv:0712.1419.
+  static const std::vector<double> mup = {0.00122, 0.590, 162.2};
+  static const std::vector<double> mdn = {0.00276, 0.052, 2.75};
+  static const std::vector<double> ml = {0.000485289396, 0.1024673155, 1.74215};
+  // Pole masses // DEBUG
+  // static const std::vector<double> mup = {Global::mu, Global::mc, Global::mt};
+  // static const std::vector<double> mdn = {Global::md, Global::ms, Global::mb};
+  // static const std::vector<double> ml = {Global::me, Global::mmuon, Global::mtau};
+
+  _VCKM = get_pdg_ckm_matrix();
+  calc_yukawa_matrices(mup, mdn, ml, _VCKM);
 }
 
 SM::~SM()
 {
-  // std::cout << "Destroying SM!\n";
+  // std::cout << "Destroying SM!\n"; // DEBUG
+}
+
+void SM::set_params(const double &renormScale, const double &lambda,
+                    const double &v2, const std::vector<double> &g,
+                    const std::vector<double> &mup,
+                    const std::vector<double> &mdn,
+                    const std::vector<double> &ml, Eigen::Matrix3cd vCkm)
+{
+  _renormScale = renormScale;
+  _lambda = lambda;
+  _v2 = v2;
+  _g1 = g[0];
+  _g2 = g[1];
+  _g3 = g[2];
+
+  calc_yukawa_matrices(mup, mdn, ml, vCkm);
+}
+
+void SM::set_higgs(const double &v2, const double &lambda)
+{
+  _v2 = v2;
+  _lambda = lambda;
+}
+
+void SM::set_gauge(const double &g1, const double &g2, const double &g3)
+{
+  _g1 = g1;
+  _g2 = g2;
+  _g3 = g3;
+}
+
+void SM::set_mup(const double &mu, const double &mc, const double &mt)
+{
+  std::vector<double> mup = {mu, mc, mt};
+  calc_yukawa_matrices(mup, get_mdn(), get_ml(), _VCKM);
+}
+void SM::set_mdn(const double &md, const double &ms, const double &mb)
+{
+  std::vector<double> mdn = {md, ms, mb};
+  calc_yukawa_matrices(get_mup(), mdn, get_ml(), _VCKM);
+}
+void SM::set_ml(const double &me, const double &mmu, const double &mtau)
+{
+  std::vector<double> ml = {me, mmu, mtau};
+  calc_yukawa_matrices(get_mup(), get_mdn(), ml, _VCKM);
+}
+void SM::set_ckm(const Eigen::Matrix3cd &vCkm)
+{
+  calc_yukawa_matrices(get_mup(), get_mdn(), get_ml(), vCkm);
 }
 
 bool SM::reset(const double y[], const double &renormScale)
@@ -67,7 +127,21 @@ bool SM::reset(const double y[], const double &renormScale)
   return true;
 }
 
-bool SM::reset_to_saved_state() { return true; }
+bool SM::reset_to_saved_state()
+{
+  _rgeResults.reset();
+
+  if (_ySaved != nullptr)
+  {
+    reset(_ySaved, _savedRenormScale); 
+    return true;
+  }
+  else
+  {
+    _console.error << "[ERROR]: No saved state. Cannot reset.\n";
+    return false;
+  }
+}
 
 void SM::print_all() const
 {
@@ -195,64 +269,15 @@ bool SM::is_stable() const
   return true;
 }
 
-void SM::set_ckm_from_pdg()
+void SM::calc_yukawa_matrices(const std::vector<double> &mup,
+                              const std::vector<double> &mdn,
+                              const std::vector<double> &ml,
+                              const Eigen::Matrix3cd &vCkm)
 {
-  // using namespace std;
-  _VCKM.setZero();
-
-  Eigen::Matrix3cd CKM_input;
-  CKM_input.setZero();
-
-  // Parameterisation of CKM matrix from PDG 2018.
-  double lambda = 0.22453;
-  double A = 0.836;
-  double rhobar = 0.122;
-  double etabar = 0.355;
-
-  double s12 = lambda;
-  double s23 = A * lambda * lambda;
-  double c12 = sqrt(1. - s12 * s12);
-  double c23 = sqrt(1. - s23 * s23);
-  double preFactor =
-      (A * pow(lambda, 3) * sqrt(1. - A * A * pow(lambda, 4))) /
-      ((1. - lambda * lambda) *
-       (1. - 2. * A * A * pow(lambda, 4) * rhobar +
-        pow(A, 4) * pow(lambda, 8) * (pow(rhobar, 2) + pow(etabar, 2))));
-  std::complex<double> s13eid = std::complex<double>(
-      preFactor *
-          (rhobar - A * A * pow(lambda, 4) * (pow(rhobar, 2) + pow(etabar, 2))),
-      preFactor * etabar);
-  double c13 = std::sqrt(std::abs(1. - std::abs(s13eid) * std::abs(s13eid)));
-
-  CKM_input(0, 0) = std::complex<double>(c12 * c13, 0.);
-  CKM_input(0, 1) = std::complex<double>(s12 * c13, 0.);
-  CKM_input(0, 2) = conj(s13eid);
-  CKM_input(1, 0) = std::complex<double>(-s12 * c23 - c12 * s23 * real(s13eid),
-                                         -c12 * s23 * imag(s13eid));
-  CKM_input(1, 1) = std::complex<double>(c12 * c23 - s12 * s23 * real(s13eid),
-                                         -s12 * s23 * imag(s13eid));
-  CKM_input(1, 2) = std::complex<double>(s23 * c13, 0.);
-  CKM_input(2, 0) = std::complex<double>(s12 * s23 - c12 * c23 * real(s13eid),
-                                         -c12 * c23 * imag(s13eid));
-  CKM_input(2, 1) = std::complex<double>(-c12 * s23 - s12 * c23 * real(s13eid),
-                                         -s12 * c23 * imag(s13eid));
-  CKM_input(2, 2) = std::complex<double>(c23 * c13, 0.);
-
-  _VCKM = CKM_input;
-}
-
-void SM::init_yukawa_sector()
-{
-  set_ckm_from_pdg();
-
+  _VCKM = vCkm;
   _yU.setZero();
   _yD.setZero();
   _yL.setZero();
-
-  // Using the MS-bar fermion masses at scale Mt from arXiv:0712.1419.
-  const static double mup[] = {0.00122, 0.590, 162.2};
-  const static double mdn[] = {0.00276, 0.052, 2.75};
-  const static double ml[] = {0.000485289396, 0.1024673155, 1.74215};
 
   for (int i = 0; i < 3; i++)
   {

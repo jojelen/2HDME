@@ -11,6 +11,7 @@
  * 
  *============================================================================*/
 #include "SM.h"
+#include "HelpFunctions.h"
 
 #include <iostream>
 

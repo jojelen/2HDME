@@ -17,6 +17,9 @@
  * Basis of CP conserving softly Z2 broken THDM:
  *   -> Hybrid
  *
+ * Basis of CP violating softly Z2 broken THDM:
+ *   -> C2HDM
+ * 
  *============================================================================*/
 #pragma once
 
@@ -39,12 +42,14 @@ enum Z2symmetry { NO_SYMMETRY, TYPE_I, TYPE_II, TYPE_III, TYPE_IV };
 /**
  * @brief Bases that are implemented in the general complex 2HDM.
  */
-enum BaseType { GENERIC, COMPACT, HIGGS, HYBRID, INVARIANT };
+enum BaseType { GENERIC, COMPACT, HIGGS, HYBRID, INVARIANT, C2HDM };
 
 enum FermionSector
 {
   UP, DOWN, LEPTON
 };
+
+
 
 //--THDM-bases------------------------------------------------------------------
 
@@ -75,11 +80,13 @@ struct Base_hybrid;
  * tanb is defined as the ratio of the Higgs doublets in this basis.
  */
 struct Base_generic : ThdmBasis {
-  double M112, M222, Lambda1, Lambda2, Lambda3, Lambda4;
-  std::complex<double> M12, Lambda5, Lambda6, Lambda7;
+  double M112=0., M222=0, Lambda1=0., Lambda2=0., Lambda3=0., Lambda4=0;
+  std::complex<double> M12=0., Lambda5=0., Lambda6=0., Lambda7=0.;
 
   Base_generic() { type = GENERIC; xi = 0.; }
 
+  bool contains_nan() const; // Returns true/false if any parameter is NaN.
+  
   // Overloading the << operator for ostream
   friend std::ostream &operator<<(std::ostream &oS, const Base_generic &gen);
   
@@ -90,6 +97,12 @@ struct Base_generic : ThdmBasis {
   Base_invariant convert_to_invariant(const double &v2) const;
 
   std::vector<double> convert_to_vector() const;
+};
+
+// Needed for given parameters to gsl functions
+struct genStruct {
+  double v2;
+  Base_generic gen;
 };
 
 /**
@@ -113,8 +126,8 @@ struct Base_compact : ThdmBasis {
  * 
  */
 struct Base_higgs : ThdmBasis {
-  double mHc, Y1, Y2, Z1, Z2, Z3, Z4;
-  std::complex<double> Y3, Z5, Z6, Z7;
+  double mHc=0, Y1=0, Y2=0, Z1=0, Z2=0, Z3=0, Z4=0;
+  std::complex<double> Y3=0, Z5=0, Z6=0, Z7=0;
 
   Base_higgs() { type = HIGGS; xi = 0.; }
 
@@ -140,6 +153,7 @@ struct Base_higgs : ThdmBasis {
  *          different potential parameters)
  *   s12, c13: Sin/Cos of angles of a SO(3) matrix that diagonalizes the neutral
  *             Higgs mass matrix, range = -pi/2 to pi/2.
+ *             sin(13) is negative for ordered masses.
  *   mHc: Charged Higgs mass.
  *   Z2, Z3: Quartic couplings in the Higgs basis.
  *   Z7inv: Invariant combination Z7*exp(-itheta23).
@@ -166,6 +180,8 @@ struct Base_invariant : ThdmBasis {
   Base_generic convert_to_generic(const double &v2) const;
   Base_compact convert_to_compact(const double &v2) const;
   Base_higgs convert_to_higgs(const double &v2) const;
+
+  Eigen::Matrix3d get_R() const;
 
   std::vector<double> convert_to_vector() const;
 };
@@ -207,4 +223,43 @@ struct Base_hybrid : ThdmBasis {
 
   std::vector<double> convert_to_vector() const;
 };
+
+/**
+ * @brief: C2HDM basis
+ *
+ * Soflty broken Z_2 CP violating basis.
+ * 
+ * It is a combination of tree-lvl masses and diagonalizing angles.
+ * 
+ * Degrees of freedom in scalar potential = 8.
+ *
+ * @params:
+ *   mh[2]: Higgs boson tree-level mass in ascending order.
+ *          The third one is a dependent quantity.
+ *   mHc: Charged Higgs boson tree-level mass.
+ *   M12: Mass parameter, 2 * m_{12}^2.
+ *   alpha[3]: Angles that diagonalizes the neutral Higgs mass matrix.
+ *             Their range is [-pi/2, pi/2].
+ *   tanb: tan(beta)
+ */
+struct Base_c2hdm : ThdmBasis {
+  std::vector<double> mh, alpha;
+  double mHc, M12, tanb;
+
+  Base_c2hdm(); 
+
+  // Overloading the << operator for ostream
+  friend std::ostream &operator<<(std::ostream &oS, const Base_c2hdm &c2hdm);
+  
+  // Sets parameters to random values.
+  void generate_random(const gsl_rng *rng);
+
+  Base_generic convert_to_generic(const double &v2) const;
+  Base_higgs convert_to_higgs(const double &v2) const;
+  Base_invariant convert_to_invariant(const double &v2) const;
+
+  std::vector<double> convert_to_vector() const;
+};
+
+
 }

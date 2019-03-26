@@ -13,7 +13,7 @@
  * such as printing to consoles, resource managing related to I/O to files etc.
  *
  * Example of derived classes:
- *  BaseModel -> RgeModel -> THDM
+ *  BaseModel <- RgeModel <- THDM
  *
  *============================================================================*/
 #pragma once

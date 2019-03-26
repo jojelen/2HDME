@@ -13,7 +13,7 @@ namespace THDME
 {
 
 std::atomic<bool> BaseModel::_first_run(true);
-const std::string BaseModel::_version = "1.1";
+const std::string BaseModel::_version = "1.2 beta";
 
 using namespace std;
 
@@ -36,7 +36,10 @@ BaseModel::BaseModel() : _modelName("unknown model"), _files("output/")
   }
 }
 
-BaseModel::~BaseModel() {}
+BaseModel::~BaseModel() 
+{
+  // printf("Deleting BaseModel!\n"); // DEBUG
+}
 
 void BaseModel::print_2hdme_info()
 {

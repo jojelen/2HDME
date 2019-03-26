@@ -11,121 +11,155 @@
 
 #include <Eigen/Dense>
 
-using std::complex;
-using std::cout;
-using std::string;
-using std::vector;
+using namespace std;
 
-namespace THDME
-{
+namespace THDME {
 
 // "<<" operator overloading
 
-std::ostream &operator<<(std::ostream &oS, const Base_generic &gen)
-{
+std::ostream &operator<<(std::ostream &oS, const Base_generic &gen) {
   oS << "Generic basis:\n"
-     << "beta = " << gen.beta << ", tanb = " << tan(gen.beta) << std::endl
-     << "M112 = " << gen.M112 << std::endl
-     << "M222 = " << gen.M222 << std::endl
-     << "M12 = " << gen.M12 << std::endl
-     << "Lambda1 = " << gen.Lambda1 << std::endl
-     << "Lambda2 = " << gen.Lambda2 << std::endl
-     << "Lambda3 = " << gen.Lambda3 << std::endl
-     << "Lambda4 = " << gen.Lambda4 << std::endl 
-     << "Lambda5 = " << gen.Lambda5 << std::endl
-     << "Lambda6 = " << gen.Lambda6 << std::endl
-     << "Lambda7 = " << gen.Lambda7 << std::endl;
+     << "beta = " << gen.beta << ", tanb = " << tan(gen.beta) << endl
+     << "M112 = " << gen.M112 << " GeV^2" << endl
+     << "M222 = " << gen.M222 << " GeV^2" << endl
+     << "M12 = " << gen.M12 << " GeV^2" << endl
+     << "Lambda1 = " << gen.Lambda1 << endl
+     << "Lambda2 = " << gen.Lambda2 << endl
+     << "Lambda3 = " << gen.Lambda3 << endl
+     << "Lambda4 = " << gen.Lambda4 << endl
+     << "Lambda5 = " << gen.Lambda5 << endl
+     << "Lambda6 = " << gen.Lambda6 << endl
+     << "Lambda7 = " << gen.Lambda7 << endl;
   return oS;
 }
 
-std::ostream &operator<<(std::ostream &oS, const Base_compact &comp)
-{
-  oS << "Compact basis:\n";
-  std::cout << "tanb = " << tan(comp.beta) << std::endl;
-  std::cout << "Y_11 = " << comp.Y[0][0] << std::endl;
-  std::cout << "Y_12 = " << comp.Y[0][1] << std::endl;
-  std::cout << "Y_21 = " << comp.Y[1][0] << std::endl;
-  std::cout << "Y_22 = " << comp.Y[1][1] << std::endl;
-  std::cout << "\nZ_1111 = " << comp.Z[0][0][0][0] << std::endl;
-  std::cout << "Z_2222 = " << comp.Z[1][1][1][1] << std::endl;
-  std::cout << "Z_1122 = Z_2211 = " << comp.Z[0][0][1][1] << std::endl;
-  std::cout << "Z_1221 = Z_2112 = " << comp.Z[0][1][1][0] << std::endl;
-  std::cout << "Z_1212 = " << comp.Z[0][1][0][1] << std::endl;
-  std::cout << "Z_2121 = " << comp.Z[1][0][1][0] << std::endl;
-  std::cout << "Z_1112 = Z_1211 = " << comp.Z[0][0][0][1] << std::endl;
-  std::cout << "Z_1121 = Z_2111 = " << comp.Z[0][0][1][0] << std::endl;
-  std::cout << "Z_2212 = Z_1222 = " << comp.Z[0][1][1][1] << std::endl;
-  std::cout << "Z_2221 = Z_2122 = " << comp.Z[1][1][1][0] << std::endl;
+std::ostream &operator<<(std::ostream &oS, const Base_compact &comp) {
+  oS << "Compact basis:\n"
+     << "tanb = " << tan(comp.beta) << endl
+     << "Y_11 = " << comp.Y[0][0] << " GeV^2" << endl
+     << "Y_12 = " << comp.Y[0][1] << " GeV^2" << endl
+     << "Y_21 = " << comp.Y[1][0] << " GeV^2" << endl
+     << "Y_22 = " << comp.Y[1][1] << " GeV^2" << endl
+     << "\nZ_1111 = " << comp.Z[0][0][0][0] << endl
+     << "Z_2222 = " << comp.Z[1][1][1][1] << endl
+     << "Z_1122 = Z_2211 = " << comp.Z[0][0][1][1] << endl
+     << "Z_1221 = Z_2112 = " << comp.Z[0][1][1][0] << endl
+     << "Z_1212 = " << comp.Z[0][1][0][1] << endl
+     << "Z_2121 = " << comp.Z[1][0][1][0] << endl
+     << "Z_1112 = Z_1211 = " << comp.Z[0][0][0][1] << endl
+     << "Z_1121 = Z_2111 = " << comp.Z[0][0][1][0] << endl
+     << "Z_2212 = Z_1222 = " << comp.Z[0][1][1][1] << endl
+     << "Z_2221 = Z_2122 = " << comp.Z[1][1][1][0] << endl;
   return oS;
 }
 
-std::ostream &operator<<(std::ostream &oS, const Base_higgs &higgs)
-{
+std::ostream &operator<<(std::ostream &oS, const Base_higgs &higgs) {
   oS << "Higgs basis:\n"
-     << "Y1 = " << higgs.Y1 << std::endl
-     << "Y2 = " << higgs.Y2 << std::endl
-     << "Y3 = " << higgs.Y3 << std::endl
-     << "Z1 = " << higgs.Z1 << std::endl
-     << "Z2 = " << higgs.Z2 << std::endl
-     << "Z3 = " << higgs.Z3 << std::endl
-     << "Z4 = " << higgs.Z4 << std::endl
-     << "Z5 = " << higgs.Z5 << std::endl
-     << "Z6 = " << higgs.Z6 << std::endl
-     << "Z7 = " << higgs.Z7 << std::endl;
+     << "Y1 = " << higgs.Y1 << endl
+     << "Y2 = " << higgs.Y2 << endl
+     << "Y3 = " << higgs.Y3 << endl
+     << "Z1 = " << higgs.Z1 << endl
+     << "Z2 = " << higgs.Z2 << endl
+     << "Z3 = " << higgs.Z3 << endl
+     << "Z4 = " << higgs.Z4 << endl
+     << "Z5 = " << higgs.Z5 << endl
+     << "Z6 = " << higgs.Z6 << endl
+     << "Z7 = " << higgs.Z7 << endl;
   return oS;
 }
 
-std::ostream &operator<<(std::ostream &oS, const Base_invariant &inv)
-{
+std::ostream &operator<<(std::ostream &oS, const Base_invariant &inv) {
   oS << "Invariant basis (theta23 = " << inv.theta23 << " ):\n"
-     << "mh[0] = " << inv.mh[0] << std::endl
-     << "mh[1] = " << inv.mh[1] << std::endl
-     << "mh[2] = " << inv.mh[2] << std::endl
-     << "mHc = " << inv.mHc << std::endl
-     << "Z2 = " << inv.Z2 << std::endl
-     << "Z3 = " << inv.Z3 << std::endl
-     << "Z7inv =" << inv.Z7inv << std::endl
-     << "s12 = " << inv.s12 << std::endl
-     << "c13 = " << inv.c13 << std::endl
-     << "tanb = " << tan(inv.beta) << std::endl;
+     << "mh[0] = " << inv.mh[0] << endl
+     << "mh[1] = " << inv.mh[1] << endl
+     << "mh[2] = " << inv.mh[2] << endl
+     << "mHc = " << inv.mHc << endl
+     << "Z2 = " << inv.Z2 << endl
+     << "Z3 = " << inv.Z3 << endl
+     << "Z7inv =" << inv.Z7inv << endl
+     << "s12 = " << inv.s12 << endl
+     << "c13 = " << inv.c13 << endl
+     << "tanb = " << tan(inv.beta) << endl;
   return oS;
 }
 
-std::ofstream &operator<<(std::ofstream &of, const Base_invariant &inv)
-{
+std::ofstream &operator<<(std::ofstream &of, const Base_invariant &inv) {
   of << "Invariant basis (theta23 = " << inv.theta23 << " ):\n"
-     << "mh[0] = " << inv.mh[0] << std::endl
-     << "mh[1] = " << inv.mh[1] << std::endl
-     << "mh[2] = " << inv.mh[2] << std::endl
-     << "mHc = " << inv.mHc << std::endl
-     << "Z2 = " << inv.Z2 << std::endl
-     << "Z3 = " << inv.Z3 << std::endl
-     << "Z7inv =" << inv.Z7inv << std::endl
-     << "s12 = " << inv.s12 << std::endl
-     << "c13 = " << inv.c13 << std::endl
-     << "tanb = " << tan(inv.beta) << std::endl;
+     << "mh[0] = " << inv.mh[0] << " GeV" << endl
+     << "mh[1] = " << inv.mh[1] << " GeV" << endl
+     << "mh[2] = " << inv.mh[2] << " GeV" << endl
+     << "mHc = " << inv.mHc << " GeV" << endl
+     << "Z2 = " << inv.Z2 << endl
+     << "Z3 = " << inv.Z3 << endl
+     << "Z7inv =" << inv.Z7inv << endl
+     << "s12 = " << inv.s12 << endl
+     << "c13 = " << inv.c13 << endl
+     << "tanb = " << tan(inv.beta) << endl;
   return of;
 }
 
-std::ostream &operator<<(std::ostream &oS, const Base_hybrid &hyb)
-{
+std::ostream &operator<<(std::ostream &oS, const Base_hybrid &hyb) {
   oS << "Hybrid basis:\n"
-     << "mh = " << hyb.mh << std::endl
-     << "mH = " << hyb.mH << std::endl
-     << "Z4 = " << hyb.Z4 << std::endl
-     << "Z5 = " << hyb.Z5 << std::endl
-     << "Z7 =" << hyb.Z7 << std::endl
-     << "cba = " << hyb.cba << std::endl
+     << "mh = " << hyb.mh << " GeV" << endl
+     << "mH = " << hyb.mH << " GeV" << endl
+     << "Z4 = " << hyb.Z4 << endl
+     << "Z5 = " << hyb.Z5 << endl
+     << "Z7 =" << hyb.Z7 << endl
+     << "cba = " << hyb.cba << endl
      << "(sba = " << std::sqrt(std::abs(1. - hyb.cba * hyb.cba)) << ")\n"
-     << "tanb = " << hyb.tanb << std::endl;
+     << "tanb = " << hyb.tanb << endl;
   return oS;
 }
 
+std::ostream &operator<<(std::ostream &oS, const Base_c2hdm &c2hdm) {
+  oS << "C2HDM basis:\n"
+     << "mh_1 = " << c2hdm.mh[0] << " GeV" << endl
+     << "mh_2 = " << c2hdm.mh[1] << " GeV" << endl
+     << "mHc = " << c2hdm.mHc << " GeV" << endl
+     << "M12 = " << c2hdm.M12 << " GeV^2" << endl
+     << "alpha_1 = " << c2hdm.alpha[0] << endl
+     << "alpha_2 = " << c2hdm.alpha[1] << endl
+     << "alpha_3 = " << c2hdm.alpha[2] << endl
+     << "tanb = " << c2hdm.tanb << endl;
+  return oS;
+}
 //--Base_generic----------------------------------------------------------------
 
-void Base_generic::generate_random_softCpConserved(const gsl_rng *rng)
-{
-  static const double_range betaRange = {atan(1.1), atan(50.)};
+bool Base_generic::contains_nan() const {
+  if (std::isnan(xi))
+    return true;
+  if (std::isnan(beta))
+    return true;
+  if (std::isnan(M112))
+    return true;
+  if (std::isnan(M222))
+    return true;
+  if (std::isnan(Lambda1))
+    return true;
+  if (std::isnan(Lambda2))
+    return true;
+  if (std::isnan(Lambda3))
+    return true;
+  if (std::isnan(Lambda4))
+    return true;
+  if (std::isnan(real(Lambda5)))
+    return true;
+  if (std::isnan(imag(Lambda5)))
+    return true;
+  if (std::isnan(real(Lambda6)))
+    return true;
+  if (std::isnan(imag(Lambda6)))
+    return true;
+  if (std::isnan(real(Lambda7)))
+    return true;
+  if (std::isnan(imag(Lambda7)))
+    return true;
+
+  return false;
+}
+
+void Base_generic::generate_random_softCpConserved(const gsl_rng *rng) {
+  static const double_range betaRange = {atan(0.1), atan(50.)};
   static const double_range MijRange = {5000., 1.e5};
   static const double_range lambdaRange = {-M_PI, M_PI};
 
@@ -148,8 +182,7 @@ void Base_generic::generate_random_softCpConserved(const gsl_rng *rng)
   Lambda7 = complex<double>(0., 0.);
 }
 
-Base_compact Base_generic::convert_to_compact() const
-{
+Base_compact Base_generic::convert_to_compact() const {
   Base_compact compact;
   compact.beta = beta;
   compact.xi = xi;
@@ -179,8 +212,7 @@ Base_compact Base_generic::convert_to_compact() const
   return compact;
 }
 
-Base_higgs Base_generic::convert_to_higgs() const
-{
+Base_higgs Base_generic::convert_to_higgs() const {
   Base_higgs higgs;
   higgs.beta = beta;
   higgs.xi = xi;
@@ -258,14 +290,12 @@ Base_higgs Base_generic::convert_to_higgs() const
   return higgs;
 }
 
-Base_invariant Base_generic::convert_to_invariant(const double &v2) const
-{
+Base_invariant Base_generic::convert_to_invariant(const double &v2) const {
   Base_invariant inv = convert_to_higgs().convert_to_invariant(v2);
   return inv;
 }
 
-vector<double> Base_generic::convert_to_vector() const
-{
+vector<double> Base_generic::convert_to_vector() const {
   return vector<double>{xi,
                         beta,
                         tan(beta),
@@ -286,8 +316,7 @@ vector<double> Base_generic::convert_to_vector() const
 }
 //--Base_higgs------------------------------------------------------------------
 
-Base_generic Base_higgs::convert_to_generic() const
-{
+Base_generic Base_higgs::convert_to_generic() const {
   Base_generic gen;
   gen.xi = xi;
   gen.beta = beta;
@@ -358,17 +387,15 @@ Base_generic Base_higgs::convert_to_generic() const
   return gen;
 }
 
-Base_invariant Base_higgs::convert_to_invariant(const double &v2) const
-{
+Base_invariant Base_higgs::convert_to_invariant(const double &v2) const {
   Base_invariant inv;
-  /* Algorithm:
-      1.) Calculate ordered eigenvalues of neutral Higgs mass matrix.
-      2.) Fix U(2) invariant angles that rotates to a diagonal mass matrix.
-    */
+  //  Algorithm:
+  //  1.) Calculate ordered eigenvalues of neutral Higgs mass matrix.
+  //  2.) Fix U(2) invariant angles that rotates to a diagonal mass matrix.
 
   // The general case where all neutral Higgs fields mix
-  // Mass matrix
-  Eigen::Matrix3d mMatrix(3, 3);
+
+  Eigen::Matrix3d mMatrix(3, 3); // Mass matrix
   mMatrix.setZero();
   mMatrix << v2 * Z1, v2 * real(Z6), -v2 * imag(Z6), v2 * real(Z6),
       v2 * 0.5 * (Z3 + Z4 + real(Z5)) + Y2, -v2 * 0.5 * imag(Z5),
@@ -378,70 +405,99 @@ Base_invariant Base_higgs::convert_to_invariant(const double &v2) const
   // Since the matrix is symmetric it gives real ordered eigenvalues.
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> M(mMatrix);
 
-  for (int i = 0; i < 3; i++)
-  {
-    if (M.eigenvalues()[i] < 0)
-    {
+  for (int i = 0; i < 3; i++) {
+    if (M.eigenvalues()[i] < 0) {
       // cout << "[WARNING]: negative eigenvalues in mass matrix, (mh[" << i
       //      << "]^2 = " << M.eigenvalues()[i] << " GeV^2). \n"; // DEBUG
       inv.mh[i] = 0.;
-    }
-    else
+    } else
       inv.mh[i] = sqrt(M.eigenvalues()[i]);
   }
 
   //--------- Calculating mixing angles --------------------------------------
 
-  double s132 =
-      ((Z1 * v2 - inv.mh[0] * inv.mh[0]) * (Z1 * v2 - inv.mh[1] * inv.mh[1]) +
-       std::abs(Z6) * std::abs(Z6) * v2 * v2) /
-      ((inv.mh[2] * inv.mh[2] - inv.mh[0] * inv.mh[0]) *
-       (inv.mh[2] * inv.mh[2] - inv.mh[1] * inv.mh[1]));
+  // double s132Old =
+  //     ((Z1 * v2 - inv.mh[0] * inv.mh[0]) * (Z1 * v2 - inv.mh[1] * inv.mh[1])
+  //     +
+  //      std::abs(Z6) * std::abs(Z6) * v2 * v2) /
+  //     ((inv.mh[2] * inv.mh[2] - inv.mh[0] * inv.mh[0]) *
+  //      (inv.mh[2] * inv.mh[2] - inv.mh[1] * inv.mh[1]));
+  // New method to minimize round off errors:
+  double numerator = std::pow(Z1 * v2, 2) + std::pow(inv.mh[0] * inv.mh[1], 2) +
+                     std::pow(std::abs(Z6) * v2, 2);
+  numerator -= Z1 * v2 * inv.mh[0] * inv.mh[0];
+  numerator -= Z1 * v2 * inv.mh[1] * inv.mh[1];
+  double denominator =
+      std::pow(inv.mh[2] * inv.mh[2], 2) + std::pow(inv.mh[0] * inv.mh[1], 2);
+  denominator -= std::pow(inv.mh[2] * inv.mh[1], 2);
+  denominator -= std::pow(inv.mh[2] * inv.mh[0], 2);
+
+  double s132 = numerator / denominator;
+
+  // DEBUG
+  // printf("numerator = %16.8e\n", numerator);
+  // printf("numerator = %16.8e\n", denominator);
+  // printf("s132_old = %16.8e\n", s132Old);
+  // printf("s132_new = %16.8e\n", s132);
+
+  double tan2Phi =
+      imag(conj(Z5) * Z6 * Z6) /
+      (real(conj(Z5) * Z6 * Z6) +
+       pow(std::norm(Z6), 2) * v2 / (inv.mh[2] * inv.mh[2] - Z1 * v2));
+
+  // s13 needs to be sizeable to not run into numerical problems.
+  // Therefore we check if it is, before calculating inv.c13 and inv.cPhi.
+  // In case it is not, we set them manually to 1.
+  static double SIZABLE = 1e-15;
   double s13 = 0.;
+  if (s132 > SIZABLE) {
+    s13 = -std::sqrt(s132); // s13 is negative for ordered masses.
+    inv.c13 = std::sqrt(1. - s132);
 
-  /* s13 needs to be sizeable to not run into numerical problems.
-      Therefore we check if it is, before calculating inv.c13 and inv.cPhi.
-      In case it is not, we set them manually to 1. */
-  if (std::abs(s132) > 1.E-10)
-  {
-    s13 = -sqrt(s132); // s13 is negative for ordered masses.
-    inv.c13 = sqrt(1. - s13 * s13);
+    // The angle Phi in [0,pi] is calculated by first calculating
+    // tan2Phi and sinPhi with eq. C22 & C23 in Phys.Rev.D 74, 015018.
+    // With those, one can then determine the sign of cos(phi) in the end.
 
-    /* The angle Phi in [0,pi] is calculated by first calculating
-      tan2Phi and sinPhi with eq. C22 & C23 in Phys.Rev.D 74, 015018.
-      With those, one can then determine the sign in the end. */
-    double tan2Phi =
-        imag(conj(Z5) * Z6 * Z6) /
-        (real(conj(Z5) * Z6 * Z6) +
-         pow(std::abs(Z6), 4) * v2 / (inv.mh[2] * inv.mh[2] - Z1 * v2));
-    double sinPhi = (Z1 * v2 - inv.mh[2] * inv.mh[2]) *
-                    (s13 / sqrt(1. - s13 * s13)) / (std::abs(Z6) * v2);
+    // This will always be positive for ordered masses:
+    double sinPhi = (Z1 * v2 - inv.mh[2] * inv.mh[2]) * (s13 / inv.c13) /
+                    (std::abs(Z6) * v2);
 
-    if (sinPhi > 0.7071067811865475 /* =sin(pi/4) */)
-    {
-      if (sinPhi > 0.99999)
+    // printf("sinPhi = %16.8e\n", sinPhi); // DEBUG
+
+    // Fixing cos(Phi):
+    static double ONE_LIMIT = 1. - SIZABLE;
+    if (sinPhi > 0.7071067811865475 /* =sin(pi/4) */) {
+      if (sinPhi > ONE_LIMIT)
         inv.cPhi = 0.;
       else if (tan2Phi < 0.)
         inv.cPhi = sqrt(1. - sinPhi * sinPhi);
       else
         inv.cPhi = -sqrt(1. - sinPhi * sinPhi);
-    }
-    else if (std::abs(sinPhi) < 1.E-10)
+    } else if (std::abs(sinPhi) < SIZABLE)
       inv.cPhi = 1.;
-    else
-    {
-      if (sinPhi < -0.99999)
+    else {
+      if (sinPhi < -ONE_LIMIT)
         inv.cPhi = 0.;
       else if (tan2Phi < 0.)
         inv.cPhi = -sqrt(1. - sinPhi * sinPhi);
       else
         inv.cPhi = sqrt(1. - sinPhi * sinPhi);
     }
-  }
-  else
-  {
+
+    // DEBUG
+    // printf("s13 = %16.8e\n", s13);
+    // printf("s132 = %16.8e\n", s132);
+    // printf("c13 = %16.8e\n", inv.c13);
+    // printf("sinPhi = %16.8e\n", sinPhi);
+    // printf("cosPhi = %16.8e\n", inv.cPhi);
+  } else {
+
     inv.c13 = 1.;
-    inv.cPhi = 1.;
+    
+    if (tan2Phi < 0)
+      inv.cPhi = -1.;
+    else
+      inv.cPhi = 1.;
   }
 
   // The angle s12 is determined from eq.C25 in Phys.Rev.D 74, 015018.
@@ -451,23 +507,21 @@ Base_invariant Base_higgs::convert_to_invariant(const double &v2) const
        std::abs(Z6) * std::abs(Z6) * v2 * v2) /
       (inv.c13 * inv.c13 * (inv.mh[1] * inv.mh[1] - inv.mh[0] * inv.mh[0]) *
        (inv.mh[2] * inv.mh[2] - inv.mh[1] * inv.mh[1]));
-  if (s122 > 0.)
+
+  if (s122 < SIZABLE) {
+    inv.s12 = 0.;
+  } 
+  else /*s122 > 0.*/
+  {
     inv.s12 = sign(inv.cPhi) *
               sign(inv.mh[1] * inv.mh[1] - inv.mh[0] * inv.mh[0]) * sqrt(s122);
-  else if (std::abs(s122) < 1.E-10)
-    inv.s12 = 0.;
-  else{
-    // cout << "[WARNING]: large negative s12^2, when calculating "
-    //         "masses and mixings.\n"; // DEBUG
-    inv.s12 = 0.;
   }
+
   // Charged Higgs:
-  if (Y2 + 0.5 * Z3 * v2 < 0)
-  {
-    // cout << "[WARNING]: Encountered negative mass for charged Higgs!\n"; //DEBUG
+  if (Y2 + 0.5 * Z3 * v2 < 0) {
+    // cout << "[WARNING]: Encountered negative mass for charged Higgs!\n"; // DEBUG
     inv.mHc = 0.;
-  }
-  else
+  } else
     inv.mHc = sqrt(Y2 + 0.5 * Z3 * v2);
 
   inv.Z2 = Z2;
@@ -485,35 +539,30 @@ Base_invariant Base_higgs::convert_to_invariant(const double &v2) const
   return inv;
 }
 
-Base_compact Base_higgs::convert_to_compact() const
-{
+Base_compact Base_higgs::convert_to_compact() const {
   Base_compact compact = convert_to_generic().convert_to_compact();
   return compact;
 }
 
-vector<double> Base_higgs::convert_to_vector() const
-{
+vector<double> Base_higgs::convert_to_vector() const {
   return vector<double>{
-      xi, beta, tan(beta), Y1, Y2, real(Y3), imag(Y3), Z1, Z2,
-      Z3, Z4, real(Z5), imag(Z5), real(Z6), imag(Z6), real(Z7), imag(Z7)};
+      xi, beta, tan(beta), Y1,       Y2,       real(Y3), imag(Y3), Z1,      Z2,
+      Z3, Z4,   real(Z5),  imag(Z5), real(Z6), imag(Z6), real(Z7), imag(Z7)};
 }
 
 //--Base_invariant--------------------------------------------------------------
 
-Base_generic Base_invariant::convert_to_generic(const double &v2) const
-{
+Base_generic Base_invariant::convert_to_generic(const double &v2) const {
   Base_generic gen = convert_to_higgs(v2).convert_to_generic();
   return gen;
 }
 
-Base_compact Base_invariant::convert_to_compact(const double &v2) const
-{
+Base_compact Base_invariant::convert_to_compact(const double &v2) const {
   Base_compact compact = convert_to_generic(v2).convert_to_compact();
   return compact;
 }
 
-Base_higgs Base_invariant::convert_to_higgs(const double &v2) const
-{
+Base_higgs Base_invariant::convert_to_higgs(const double &v2) const {
   Base_higgs higgs;
   higgs.xi = xi;
   higgs.beta = beta;
@@ -575,17 +624,37 @@ Base_higgs Base_invariant::convert_to_higgs(const double &v2) const
   return higgs;
 }
 
-vector<double> Base_invariant::convert_to_vector() const
+Eigen::Matrix3d Base_invariant::get_R() const
 {
-  return vector<double>{xi, beta, tan(beta), cPhi, mHc,
-                        mh[0], mh[1], mh[2], s12, c13,
-                        Z2, Z3, theta23, real(Z7inv), imag(Z7inv)};
+  Eigen::Matrix3d mMatrix(3, 3);
+  mMatrix.setZero();
+
+  double s13 = - std::sqrt(1. - c13*c13);
+  double c12 = std::sqrt(1.-s12*s12);
+  double c23 = cos(theta23);
+  double s23 = sin(theta23);
+  mMatrix(0,0) = c13*c12;
+  mMatrix(0,1) = -c23*s12-c12*s13*s23;
+  mMatrix(0,2) = -c12*c23*s13+s12*s23;
+  mMatrix(1,0) = c13*s12;
+  mMatrix(1,1) = c12*c23-s12*s13*s23;
+  mMatrix(1,2) = -c23*s12*s13-c12*s23;
+  mMatrix(2,0) = s13;
+  mMatrix(2,1) = c13*s23;
+  mMatrix(2,2) = c13*c23;
+
+  return mMatrix;
+}
+
+vector<double> Base_invariant::convert_to_vector() const {
+  return vector<double>{xi,    beta,  tan(beta), cPhi,        mHc,
+                        mh[0], mh[1], mh[2],     s12,         c13,
+                        Z2,    Z3,    theta23,   real(Z7inv), imag(Z7inv)};
 }
 
 //--Base_hybrid-----------------------------------------------------------------
 
-void Base_hybrid::generate_random_softCpConserved(const gsl_rng *rng)
-{
+void Base_hybrid::generate_random_softCpConserved(const gsl_rng *rng) {
   // Ranges for the parameters:
   static const double_range betaRange = {atan(1.1), atan(50.)};
   static Range_hybrid hybRange;
@@ -616,12 +685,10 @@ void Base_hybrid::generate_random_softCpConserved(const gsl_rng *rng)
        (hybRange.Z7.max - hybRange.Z7.min) * gsl_rng_uniform(rng);
 }
 
-Base_generic Base_hybrid::convert_to_generic(const double &v2) const
-{
+Base_generic Base_hybrid::convert_to_generic(const double &v2) const {
   Base_generic gen;
 
-  if (v2 < 0.1)
-  {
+  if (v2 < 0.1) {
     cout << "[ERROR]: Invalid v2 given to convert_to_generic().\n";
     return gen;
   }
@@ -636,8 +703,7 @@ Base_generic Base_hybrid::convert_to_generic(const double &v2) const
   return gen;
 }
 
-Base_higgs Base_hybrid::convert_to_higgs(const double &v2) const
-{
+Base_higgs Base_hybrid::convert_to_higgs(const double &v2) const {
   Base_higgs higgs;
 
   // Beware that some parts of 2HDMC uses different convention where sba is in
@@ -647,14 +713,12 @@ Base_higgs Base_hybrid::convert_to_higgs(const double &v2) const
   static const double VSMALL = 1E-10;
 
   if ((mh < 0) || (std::abs(cba) > 1) || (std::abs(mh - mH) < VSMALL) ||
-      (std::abs(tanb - 1.) < VSMALL))
-  {
+      (std::abs(tanb - 1.) < VSMALL)) {
     cout << "[ERROR]: Can't convert hybrid basis to Higgs basis\n";
     return higgs;
   }
 
-  if (v2 < 0.1)
-  {
+  if (v2 < 0.1) {
     cout << "[ERROR]: Invalid v2 given to convert_to_higgs().\n";
     return higgs;
   }
@@ -686,14 +750,107 @@ Base_higgs Base_hybrid::convert_to_higgs(const double &v2) const
   return higgs;
 }
 
-Base_invariant Base_hybrid::convert_to_invariant(const double &v2) const
-{
+Base_invariant Base_hybrid::convert_to_invariant(const double &v2) const {
   return convert_to_higgs(v2).convert_to_invariant(v2);
 }
 
-std::vector<double> Base_hybrid::convert_to_vector() const
-{
-  return std::vector<double> {xi, beta, tanb, mh, mH, cba, Z4, Z5, Z7};
+std::vector<double> Base_hybrid::convert_to_vector() const {
+  return std::vector<double>{xi, beta, tanb, mh, mH, cba, Z4, Z5, Z7};
+}
+
+//--Base_c2hdm-----------------------------------------------------------------
+
+Base_c2hdm::Base_c2hdm() {
+  type = C2HDM;
+  xi = 0.;
+  mh.resize(2);
+  alpha.resize(3);
+}
+
+Base_generic Base_c2hdm::convert_to_generic(const double &v2) const {
+  Base_generic gen;
+  gen.beta = atan(tanb);
+  gen.xi = xi;
+  gen.M12 = complex<double>(0.5 * M12, 0.);
+
+  double c1 = cos(alpha[0]);
+  double c2 = cos(alpha[1]);
+  double c3 = cos(alpha[2]);
+  double s1 = sin(alpha[0]);
+  double s2 = sin(alpha[1]);
+  double s3 = sin(alpha[2]);
+
+  double cb = cos(gen.beta);
+  double sb = std::sqrt(1. - cb * cb);
+
+  double nu = M12 / (2. * cb * sb);
+
+  double m1 = mh[0] * mh[0];
+  double m2 = mh[1] * mh[1];
+
+  Eigen::Matrix3d R;
+  R.setZero();
+
+  R(0, 0) = c1 * c2;
+  R(0, 1) = s1 * c2;
+  R(0, 2) = s2;
+  R(1, 0) = -(c1 * s2 * s3 + s1 * c3);
+  R(1, 1) = c1 * c3 - s1 * s2 * s3;
+  R(1, 2) = c2 * s3;
+  R(2, 0) = -c1 * s2 * c3 + s1 * s3;
+  R(2, 1) = -(c1 * s3 + s1 * s2 * c3);
+  R(2, 2) = c2 * c3;
+
+  double m3 = (m1 * R(0, 2) * (R(0, 1) * tanb - R(0, 0)) +
+               m2 * R(1, 2) * (R(1, 1) * tanb - R(1, 0))) /
+              (R(2, 2) * (R(2, 0) - R(2, 1) * tanb));
+
+  gen.Lambda1 =
+      (c1 * c1 * c2 * c2 * m1 + std::pow(c1 * s2 * s3 + s1 * c3, 2) * m2 +
+       std::pow(c1 * s2 * c3 - s1 * s3, 2) * m3 - sb * sb * nu) /
+      (cb * cb * v2);
+
+  gen.Lambda2 =
+      (s1 * s1 * c2 * c2 * m1 + std::pow(c1 * c3 - s1 * s2 * s3, 2) * m2 +
+       std::pow(c1 * s3 + s1 * s2 * c3, 2) * m3 - cb * cb * nu) /
+      (sb * sb * v2);
+
+  gen.Lambda3 = (c1 * s1 *
+                     (c2 * c2 * m1 + (s2 * s2 * s3 * s3 - c3 * c3) * m2 +
+                      (s2 * s2 * c3 * c3 - s3 * s3) * m3) +
+                 s2 * c3 * s3 * (c1 * c1 - s1 * s1) * (m3 - m2)) /
+                    (cb * sb * v2) +
+                (2 * mHc * mHc - nu) / v2;
+
+  gen.Lambda4 = (s2 * s2 * m1 + c2 * c2 * s3 * s3 * m2 +
+                 c2 * c2 * c3 * c3 * m3 + nu - 2 * mHc * mHc) /
+                v2;
+
+  gen.Lambda5 = std::complex<double>(
+      (-s2 * s2 * m1 - c2 * c2 * s3 * s3 * m2 - c2 * c2 * c3 * c3 * m3 + nu) /
+          v2,
+      -(cb * (c1 * c2 * s2 * m1 - c2 * s3 * (c1 * s2 * s3 + s1 * c3) * m2 +
+              c2 * c3 * (s1 * s3 - c1 * s2 * c3) * m3) +
+        sb * (s1 * c2 * s2 * m1 + c2 * s3 * (c1 * c3 - s1 * s2 * s3) * m2 -
+              c2 * c3 * (c1 * s3 + s1 * s2 * c3) * m3)) /
+          (cb * sb * v2));
+  gen.Lambda6 = std::complex<double>(0., 0.);
+  gen.Lambda7 = std::complex<double>(0., 0.);
+
+  return gen;
+}
+
+Base_higgs Base_c2hdm::convert_to_higgs(const double &v2) const {
+  return convert_to_generic(v2).convert_to_higgs();
+}
+
+Base_invariant Base_c2hdm::convert_to_invariant(const double &v2) const {
+  return convert_to_generic(v2).convert_to_invariant(v2);
+}
+
+std::vector<double> Base_c2hdm::convert_to_vector() const {
+  return vector<double>{mh[0],    mh[1],    mHc,      M12,
+                        alpha[0], alpha[1], alpha[2], tanb};
 }
 
 } // namespace THDME

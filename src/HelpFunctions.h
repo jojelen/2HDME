@@ -45,8 +45,6 @@ bool create_folder_path(const std::string &path);
 
 bool change_directory(const std::string &cdCommand);
 
-
-
 //------------------------------------------------------------------------------
 
 // LO RG evolution of alphaS=g3^3/4pi
@@ -114,6 +112,8 @@ std::string date();
 
 //------------------------------------------------------------------------------
 
+double RAND();
+
 // Returns random Matrix3cd, with abs(elements) < 1
 Eigen::Matrix3cd randomMatrix3cd(gsl_rng *rng);
 
@@ -127,6 +127,7 @@ int jac(double t, const double y[], double *dfdy, double dfdt[], void *params);
 
 /**
  * @brief Biunitary transformation of the Yukawa matrices in the Higgs basis.
+ * 
  * This diagonalizes the kF matrices. It also calculates the CKM matrix,
  * transforms the rF matrices. Also calculates fermion masses.
  */
@@ -134,6 +135,23 @@ void BiUnitary(Eigen::Matrix3cd &kU, Eigen::Matrix3cd &kD, Eigen::Matrix3cd &kL,
                Eigen::Matrix3cd &rU, Eigen::Matrix3cd &rD, Eigen::Matrix3cd &rL,
                Eigen::Matrix3cd &VCKM, double mup[], double mdn[], double ml[],
                double &v2);
+
+/**
+ * @brief: Transforms the matrix to PDG convention
+ */
+void toPdgConventions(Eigen::Matrix3cd &VCKM);
+void toPdgConventions(Eigen::Matrix3cd &VCKM, Eigen::Matrix3cd &PU,
+                      Eigen::Matrix3cd &PD);
+
+/**
+ * brief: Retrieves the parameters of the matrix
+ */
+void getCkmParams(const Eigen::Matrix3cd &VCKM, double &s12, double &s13,
+                  double &s23, double &delta);
+
+
+Eigen::Matrix3cd createCkmMatrix(double lambda, double A, double rhobar,
+                                 double etabar);
 
 // Returns a Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> for the mass matrix
 // of neutral Higgs bosons. This can then be used to extract eigenvalues
@@ -206,36 +224,5 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-
-// OLD METHODS as of 1 feb:
-// void print_evolution_data(FileSystem &fileSystem, const THDM &thdm,
-//                           const std::string modelName);
-
-// void print_misc_data(FileSystem &fileSystem, const THDM &thdm,
-//                      const std::string modelName);
-
-// void print_generic_basis(FileSystem &fileSystem, const THDM &thdm,
-//                          const std::string modelName);
-
-// void print_physical_data_files(FileSystem &fileSystem, const THDM &thdm,
-//                                const std::string modelName);
-
-// void printToFiles(THDM &thdm, const std::string &outputDir,
-//                   const std::string modelName = "");
-
-//-----------------------------------------------------------------------------
-
-/**
- * @brief: Export functions
- *
- * Use export_to_csv to add thdm to a csv file in outoutDir. The modelname is
- * added to the file name.
- */
-void export_to_csv(THDM &thdm, const std::string &outputDir,
-                   const std::string modelName = "");
-
-void add_header_to_csv(FileSystem &fileSystem, const std::string modelName);
-void add_to_csv(FileSystem &fileSystem, const THDM &thdm,
-                const std::string modelName);
 
 } // namespace THDME

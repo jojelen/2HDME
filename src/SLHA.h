@@ -78,6 +78,7 @@ public:
   void print(FILE *output) const; // Prints to file with fprintf
 
   std::string get_name() const;
+
 private:
   std::string _name;
   std::string _comment;
@@ -102,9 +103,12 @@ public:
 
   // Retrieves a parameter
   double get_param(const std::string &block, const int &ID1) const;
-  double get_param(const std::string &block, const int &ID1, const int &ID2) const;
-  double get_param(const std::string &block, const int &ID, const int &ID2, const int &ID3) const;
-  double get_param(const std::string &block, const std::vector<int> &idVec) const;
+  double get_param(const std::string &block, const int &ID1,
+                   const int &ID2) const;
+  double get_param(const std::string &block, const int &ID, const int &ID2,
+                   const int &ID3) const;
+  double get_param(const std::string &block,
+                   const std::vector<int> &idVec) const;
 
 private:
   void print_header(FILE *output) const;

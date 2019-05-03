@@ -17,8 +17,7 @@
 #include <mutex>
 #include <string>
 
-namespace THDME
-{
+namespace THDME {
 
 /**
  * @brief Options for RG evolutions
@@ -26,8 +25,7 @@ namespace THDME
  * The RGE evolution is configured with a RGE_config struct.
  * The Results of the RGE evolution is saved in a RgeResults struct.
  */
-struct RgeConfig
-{
+struct RgeConfig {
   bool twoloop; // set to true to use two-loop RGEs
 
   bool perturbativity; // if these = true, enforces
@@ -54,8 +52,7 @@ struct RgeConfig
  * Struct that contains all information of a models
  * RG evolution.
  **/
-struct RgeResults
-{
+struct RgeResults {
   // Start and finish energy for RGE evolution
   double e0, ef;
 
@@ -84,14 +81,14 @@ struct RgeResults
 
   // Print to console
   void print(const bool fancyStyle = true) const;
-
+  // Returns true if there are no violations and evolved=true
+  bool is_okay() const;
 };
 
 /*----------------------------------------------------------------------------*/
 
 // A structure that can be used to set a range for a double parameter.
-struct double_range
-{
+struct double_range {
   bool fixed;
   double fixedValue;
   double min, max;
@@ -117,8 +114,7 @@ struct double_range
 /*******************************************************************************
  * @brief: Collection of parameter ranges for hybrid basis
  */
-struct Range_hybrid
-{
+struct Range_hybrid {
   double_range mh, mH, cba, tanb, Z4, Z5, Z7;
   std::string name;
   Z2symmetry yukawaType;

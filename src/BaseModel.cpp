@@ -13,7 +13,7 @@ namespace THDME
 {
 
 std::atomic<bool> BaseModel::_first_run(true);
-const std::string BaseModel::_version = "1.2 beta";
+const std::string BaseModel::_version = "1.2";
 
 using namespace std;
 
@@ -24,13 +24,6 @@ BaseModel::BaseModel() : _modelName("unknown model"), _files("output/")
   {
     if (std::atomic_exchange(&_first_run, false))
     {
-      // SPheno writes a bunch of temp files. This is a clean up action.
-#ifdef SPheno
-      int error = system("rm -r temp");
-      if (error == -1)
-        _console.error << "[ERROR]: Couldn't clean up temp directory.\n";
-#endif
-
       print_2hdme_info();
     }
   }

@@ -7,16 +7,14 @@
  *============================================================================*/
 #include "Structures.h"
 
-namespace THDME
-{
+namespace THDME {
 
 RgeConfig::RgeConfig()
     : twoloop(false), perturbativity(true), stability(true), unitarity(true),
       consoleOutput(true), dataOutput(false), evolutionName("evolution"),
       finalEnergyScale(1e18), steps(100) {}
 
-void RgeConfig::print() const
-{
+void RgeConfig::print() const {
   std::cout << "RGE options:\n";
 
   std::cout << "Evolution name: " << evolutionName << std::endl;
@@ -45,8 +43,7 @@ RgeResults::RgeResults()
       unitarityViolation(false), stabilityViolation(false) {}
 
 // Copy constructor
-RgeResults::RgeResults(const RgeResults &rge)
-{
+RgeResults::RgeResults(const RgeResults &rge) {
   e0 = rge.e0;
   ef = rge.ef;
   ef_pert = rge.ef_pert;
@@ -59,8 +56,7 @@ RgeResults::RgeResults(const RgeResults &rge)
   stabilityViolation = rge.stabilityViolation;
 }
 
-void RgeResults::reset()
-{
+void RgeResults::reset() {
   e0 = 0.;
   ef = 0.;
   ef_pert = -1.0;
@@ -74,15 +70,12 @@ void RgeResults::reset()
 }
 
 // Print to console
-void RgeResults::print(const bool fancyStyle) const
-{
-  if (!evolved)
-  {
+void RgeResults::print(const bool fancyStyle) const {
+  if (!evolved) {
     std::cout << "RGE: \x1B[33munevolved.\x1B[0m\n";
     return;
   }
-  if (fancyStyle)
-  {
+  if (fancyStyle) {
     // \x1B[31m = bold red text color
     // \x0B[32m = green text color
     // \x1B[0m restores it.
@@ -111,9 +104,7 @@ void RgeResults::print(const bool fancyStyle) const
       std::cout << "\x1B[0;32mStability satisfied!\x1B[0m" << std::endl;
 
     std::cout << "\n";
-  }
-  else
-  {
+  } else {
     std::cout << "\nResults" << std::endl;
     std::cout << "Evolved from " << e0 << " GeV to " << ef
               << " GeV: " << std::endl;
@@ -138,6 +129,16 @@ void RgeResults::print(const bool fancyStyle) const
     std::cout << "\n";
   }
 }
+bool RgeResults::is_okay() const {
+  if (evolved) {
+    if (LandauViolation || perturbativityViolation || unitarityViolation ||
+        stabilityViolation)
+      return false;
+    else
+      return true;
+  } else
+    return false;
+}
 
 double_range::double_range() : fixed(false) {}
 
@@ -147,8 +148,7 @@ double_range::double_range(double min_in, double max_in)
 double_range::double_range(double value_in)
     : fixed(true), fixedValue(value_in) {}
 
-double double_range::draw_random(const gsl_rng *rng) const
-{
+double double_range::draw_random(const gsl_rng *rng) const {
   if (fixed)
     return fixedValue;
   else
@@ -157,8 +157,7 @@ double double_range::draw_random(const gsl_rng *rng) const
 }
 
 // Overloading the << operator
-std::ostream &operator<<(std::ostream &of, const double_range &range)
-{
+std::ostream &operator<<(std::ostream &of, const double_range &range) {
   if (range.fixed)
     of << range.fixedValue;
   else
@@ -166,8 +165,7 @@ std::ostream &operator<<(std::ostream &of, const double_range &range)
   return of;
 }
 
-std::string double_range::toString()
-{
+std::string double_range::toString() {
 
   std::string rangeString;
 
@@ -183,45 +181,42 @@ std::string double_range::toString()
 //------------------------------------------------------------------------------
 
 Range_hybrid::Range_hybrid()
-      : mh(105, 145), mH(150, 1000), cba(-0.5, 0.5), tanb(1.1, 50),
-        Z4(-M_PI, M_PI), Z5(-M_PI, M_PI), Z7(-M_PI, M_PI), name("Default"),
-        yukawaType(TYPE_I) {}
+    : mh(105, 145), mH(150, 1000), cba(-0.5, 0.5), tanb(1.1, 50),
+      Z4(-M_PI, M_PI), Z5(-M_PI, M_PI), Z7(-M_PI, M_PI), name("Default"),
+      yukawaType(TYPE_I) {}
 
-  void Range_hybrid::print() const
-  {
-    std::cout << name << "'s free parameter ranges:\n";
-    std::cout << "mh: " << mh << std::endl;
-    std::cout << "mH: " << mH << std::endl;
-    std::cout << "cba: " << cba << std::endl;
-    std::cout << "tanb: " << tanb << std::endl;
-    std::cout << "Z4: " << Z4 << std::endl;
-    std::cout << "Z5: " << Z5 << std::endl;
-    std::cout << "Z7: " << Z7 << std::endl;
+void Range_hybrid::print() const {
+  std::cout << name << "'s free parameter ranges:\n";
+  std::cout << "mh: " << mh << std::endl;
+  std::cout << "mH: " << mH << std::endl;
+  std::cout << "cba: " << cba << std::endl;
+  std::cout << "tanb: " << tanb << std::endl;
+  std::cout << "Z4: " << Z4 << std::endl;
+  std::cout << "Z5: " << Z5 << std::endl;
+  std::cout << "Z7: " << Z7 << std::endl;
+}
+
+Base_hybrid Range_hybrid::get_random_point(const gsl_rng *rng) const {
+  Base_hybrid hyb;
+
+  // Random free parameters
+  hyb.mh = mh.draw_random(rng);
+  hyb.mH = mH.draw_random(rng);
+  hyb.cba = cba.draw_random(rng);
+
+  if (tanb.fixed)
+    hyb.tanb = tanb.fixedValue;
+  else {
+    double_range betaRange(atan(tanb.min), atan(tanb.max));
+    double beta = betaRange.draw_random(rng);
+    hyb.tanb = tan(beta);
   }
 
-  Base_hybrid Range_hybrid::get_random_point(const gsl_rng *rng) const
-  {
-    Base_hybrid hyb;
+  hyb.Z4 = Z4.draw_random(rng);
+  hyb.Z5 = Z5.draw_random(rng);
+  hyb.Z7 = Z7.draw_random(rng);
 
-    // Random free parameters
-    hyb.mh = mh.draw_random(rng);
-    hyb.mH = mH.draw_random(rng);
-    hyb.cba = cba.draw_random(rng);
-
-    if (tanb.fixed)
-      hyb.tanb = tanb.fixedValue;
-    else
-    {
-      double_range betaRange(atan(tanb.min), atan(tanb.max));
-      double beta = betaRange.draw_random(rng);
-      hyb.tanb = tan(beta);
-    }
-    
-    hyb.Z4 = Z4.draw_random(rng);
-    hyb.Z5 = Z5.draw_random(rng);
-    hyb.Z7 = Z7.draw_random(rng);
-
-    return hyb;
-  }
+  return hyb;
+}
 
 } // namespace THDME

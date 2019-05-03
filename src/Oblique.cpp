@@ -2,6 +2,7 @@
 // Copyright (C) 2018 Joel Oredsson.
 // 2HDME is licenced under the GNU GPL v3 or later, see LICENSE for details.
 #include "Oblique.h"
+#include "Globals.h"
 
 #include <cmath>
 #include <cstdio>
@@ -13,9 +14,9 @@ namespace THDME
 
 double calcS(const std::vector<double> &mi, const std::vector<double> &qi12)
 {
-  constexpr static double mZ = 91.15349;
+  constexpr static double mZ = Global::mZ;
   constexpr static double mZ2 = mZ * mZ;
-  constexpr static double mPhi = 125.;
+  constexpr static double mPhi = Global::mh;
 
   constexpr static double prefactor = 1. / (M_PI * mZ * mZ);
   double s = 0.;
@@ -49,10 +50,10 @@ double calcS(const std::vector<double> &mi, const std::vector<double> &qi12)
 double calcT(const std::vector<double> &mi, const std::vector<double> &qi12,
              const std::vector<double> &qi22)
 {
-  constexpr static double mZ = 91.15349;
-  constexpr static double mW = 80.36951;
-  constexpr static double mPhi = 125.;
-  constexpr static double sW2 = 1. - mW * mW / (mZ * mZ);
+  constexpr static double mZ = Global::mZ;
+  constexpr static double mW = Global::mW;
+  constexpr static double mPhi = Global::mh;
+  constexpr static double sW2 = Global::sW2;
   constexpr static double prefactor = 1. / (16. * M_PI * mW * mW * sW2);
 
   if (mi.size() != 4 || qi12.size() < 3 || qi22.size() < 3)
@@ -80,8 +81,8 @@ double calcT(const std::vector<double> &mi, const std::vector<double> &qi12,
 double calcU(const std::vector<double> &mi, const std::vector<double> &qi12,
              const std::vector<double> &qi22)
 {
-  constexpr static double mZ = 91.15349;
-  constexpr static double mW = 80.36951;
+  constexpr static double mZ = Global::mZ;
+  constexpr static double mW = Global::mW;
 
   if (mi.size() != 4 || qi12.size() < 3 || qi22.size() < 3)
   {
@@ -125,7 +126,7 @@ double Fm1m2(const double &m1, const double &m2)
 double GmV(const double &mV, const std::vector<double> &mi,
            const std::vector<double> &qi12)
 {
-  constexpr static double mPhi = 125.;
+  constexpr static double mPhi = Global::mh;
 
   double result = 0;
 
@@ -149,7 +150,7 @@ double PVB(const int i, const double &q, const double &m1, const double &m2)
     return 0.;
 
   gsl_function F;
-  integration_params params = {q, m1, m2};
+  integration_params_pvb params = {q, m1, m2};
 
   switch (i)
   {
@@ -207,7 +208,7 @@ double PVB(const int i, const double &q, const double &m1, const double &m2)
 
 double b0_integrand(double x, void *p)
 {
-  struct integration_params *params = (struct integration_params *)p;
+  struct integration_params_pvb *params = (struct integration_params_pvb *)p;
   double q2 = (params->q) * (params->q);
   double m12 = (params->m1) * (params->m1);
   double m22 = (params->m2) * (params->m2);
@@ -218,7 +219,7 @@ double b0_integrand(double x, void *p)
 
 double b22_integrand(double x, void *p)
 {
-  struct integration_params *params = (struct integration_params *)p;
+  struct integration_params_pvb *params = (struct integration_params_pvb *)p;
   double q2 = (params->q) * (params->q);
   double m12 = (params->m1) * (params->m1);
   double m22 = (params->m2) * (params->m2);

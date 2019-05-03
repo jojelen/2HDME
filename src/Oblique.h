@@ -18,12 +18,8 @@
  * q_ij refers to the vectors in table 1 in arXiv:1011.6188v2.
  * 
  * The calculations depends on mW, mZ and sin(theta_W)^2 that are hard coded to 
- * be
- *   mZ = 91.15349 GeV,
- *   mW = 80.36951 GeV,
- *   sW2 = 1. - mW * mW / (mZ * mZ).
- * S and T also depend on the measured SM Higgs boson mass,
- *   mPhi = 125 GeV.
+ * be the ones in Globals.h.
+ * S and T also depend on the measured SM Higgs boson mass.
  *
  *============================================================================*/
 #pragma once
@@ -54,7 +50,7 @@ double GmV(const double &mV, const std::vector<double> &mi,
            const std::vector<double> &qi12); // eq.5.24 in arXiv:1011.6188v2
 
 // Functions needed for the integration in PVB
-struct integration_params {
+struct integration_params_pvb {
   double q, m1, m2;
 };
 double b0_integrand(double x, void *p);

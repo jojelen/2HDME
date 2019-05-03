@@ -12,10 +12,6 @@
 #include "RGE.h"
 #include "SLHA.h"
 
-#ifdef SPHENO
-#include "SPheno.h"
-#endif
-
 #ifdef GNUPLOT
 #include "GnuPlotSystem.h"
 #endif
@@ -52,13 +48,9 @@ THDM::THDM(const SM &sm) : _z2_symmetry(NO_SYMMETRY) {
 }
 
 // Copy-constructor
-THDM::THDM(const THDM &thdm) {
-  // std::cout << "Copying thdm!\n"; // DEBUG
-  set_from_thdm(thdm);
-}
+THDM::THDM(const THDM &thdm) { set_from_thdm(thdm); }
 
 THDM &THDM::operator=(const THDM &thdm) {
-  // std::cout << "Assigning thdm!\n"; // DEBUG
   set_from_thdm(thdm);
   return *this;
 }
@@ -68,10 +60,8 @@ void THDM::set_from_thdm(const THDM &thdm) {
   init();
 
   _renormScale = thdm.get_renormalization_scale();
-#ifdef SPHENO
-  _spheno.set(thdm.get_spheno_output());
-#endif
   set_rgeConfig(thdm.get_rgeConfig());
+  set_rgeResults(thdm.get_rgeResults());
 
   double y[_numParams];
   thdm.set_y(y);
@@ -81,6 +71,9 @@ void THDM::set_from_thdm(const THDM &thdm) {
   _z2_symmetry = thdm.get_yukawa_type();
 
   calc_treeLvl_masses_and_mixings();
+  if (thdm._mh_pole[0] > 0) // Copies "pole" masses if they have been calculated
+    for (int h = 0; h <= 4; ++h)
+      _mh_pole[h] = thdm._mh_pole[h];
 }
 
 THDM::~THDM() {
@@ -88,6 +81,7 @@ THDM::~THDM() {
 }
 
 bool THDM::set_param_gen(const Base_generic &in, const bool enforceTadpole) {
+  clear_calculated_quantities();
   if (in.contains_nan()) {
     _console.error << "[ERROR]: NaN value detected in set_param_gen()!\n";
     return false;
@@ -138,7 +132,10 @@ Base_hybrid THDM::get_param_hybrid() const {
   double mA = std::sqrt(_mHc * _mHc + 0.5 * (higgs.Z4 - real(higgs.Z5)) * _v2);
 
   double mh, mH, cba;
-  if (std::abs(higgs.Z6) > 1e-10) {
+
+  constexpr static double MIN_Z6_VALUE = 1e-10;
+
+  if (std::abs(higgs.Z6) > MIN_Z6_VALUE) {
     mh = std::sqrt(
         0.5 * (mA * mA + (higgs.Z1 + real(higgs.Z5)) * _v2 -
                std::sqrt((mA * mA + (real(higgs.Z5) - higgs.Z1) * _v2) *
@@ -330,6 +327,10 @@ bool THDM::fix_treeLvl_tadpole_eqs() {
       gsl_root_fdfsolver_free(s);
 
       _base_generic.xi = fmod(x, 2. * M_PI);
+      // Setting xi to zero if it is below threshold.
+      static constexpr double MIN_XI = 1e-15;
+      if (abs(_base_generic.xi) < MIN_XI)
+        _base_generic.xi = 0.;
 
       if (std::abs(F.f(x, F.params)) > 1e-6) {
         _console.debug
@@ -378,7 +379,10 @@ bool THDM::fix_treeLvl_tadpole_eqs() {
   return true;
 }
 
-void THDM::set_tanb(const double &tanb) { _base_generic.beta = atan(tanb); }
+bool THDM::set_tanb(const double &tanb) {
+  _base_generic.beta = atan(tanb);
+  return set_param_gen(_base_generic);
+}
 
 void THDM::chi_phase_shift(const double &chi) {
   // chi is the phase of the determinant of a U(2) Higgs flavor transformation
@@ -526,6 +530,7 @@ void THDM::set_model_from_y(const double y[]) {
 }
 
 void THDM::set_yukawa_type(const Z2symmetry &z2) {
+  clear_calculated_quantities();
   _z2_symmetry = z2;
 
   // Sets the kappa matrices to be diagonal proportional to the fermion masses.
@@ -588,6 +593,7 @@ Z2symmetry THDM::get_yukawa_type() const { return _z2_symmetry; }
 void THDM::set_yukawa_aligned(const std::complex<double> &aU,
                               const std::complex<double> &aD,
                               const std::complex<double> &aL) {
+  clear_calculated_quantities();
   _z2_symmetry = NO_SYMMETRY;
 
   // Sets the kappa matrices to be diagonal proportional to the fermion masses.
@@ -599,7 +605,6 @@ void THDM::set_yukawa_aligned(const std::complex<double> &aU,
 }
 
 vector<complex<double>> THDM::get_aF() const {
-  // aFVec = {aU, aD, aL}
   vector<complex<double>> aFVec = {_rU(2, 2) / _kU(2, 2), _rD(2, 2) / _kD(2, 2),
                                    _rL(2, 2) / _kL(2, 2)};
 
@@ -609,6 +614,7 @@ vector<complex<double>> THDM::get_aF() const {
 void THDM::set_yukawa_rho(const Eigen::Matrix3cd &rU,
                           const Eigen::Matrix3cd &rD,
                           const Eigen::Matrix3cd &rL) {
+  clear_calculated_quantities();
   _rU = rU;
   _rD = rD;
   _rL = rL;
@@ -617,6 +623,7 @@ void THDM::set_yukawa_rho(const Eigen::Matrix3cd &rU,
 void THDM::set_yukawa_manual(const Eigen::Matrix3cd &rU,
                              const Eigen::Matrix3cd &rD,
                              const Eigen::Matrix3cd &rL) {
+  clear_calculated_quantities();
   if (_z2_symmetry != NO_SYMMETRY) {
     _console.warning << "[WARNING]: Overwriting Z_2 symmetry.\n";
     _z2_symmetry = NO_SYMMETRY;
@@ -758,14 +765,11 @@ bool THDM::is_stable_z2sym() const {
       _base_generic.Lambda3 + _base_generic.Lambda4 -
               std::abs(_base_generic.Lambda5) <
           -sqrt(std::abs(_base_generic.Lambda1 * _base_generic.Lambda2))) {
-    // _console.warning
-    //     << "[WARNING]: Z2 symmetric stability conditions violated!\n";
     return false;
   }
   return true;
 }
 bool THDM::is_stable() const {
-  // return is_stable_z2sym(); // DEBUG!
 
   Eigen::Matrix4cd LE(4, 4);
   Eigen::Matrix4cd mink(4, 4);
@@ -832,7 +836,6 @@ bool THDM::is_stable() const {
   // 1) check if eigenvalues are real
   for (int i = 0; i < 4; i++) {
     if (abs(imag(eigenValues[i])) > 1e-10) {
-      // std::cout << "Imaginary eigenvalues!\n";
       return false;
     }
   }
@@ -848,13 +851,11 @@ bool THDM::is_stable() const {
 
   // 2) Check that the largest one is positive
   if (maxEigen < 0) {
-    // std::cout << "Largest negative, eigenvalues!\n";
     return false;
   }
 
   // 3) Check linear independence
   if (std::abs(eigenVectors.determinant()) < 0.001) {
-    // std::cout << "Not linear indep!\n";
     return false;
   }
   // 4) Check that the largest eigenvector is timelike and the others spacelike
@@ -1030,9 +1031,6 @@ void THDM::print_all() const {
   print_higgs_masses();
   print_neutral_higgs_eigenVectors();
   print_oblique();
-#ifdef SPHENO
-  _spheno.print();
-#endif
   print_CKM();
   print_yukawa();
 
@@ -1130,12 +1128,12 @@ void THDM::print_z2Symmetry() const {
   }
 }
 
-void THDM::print_higgs_masses() const {
+void THDM::print_higgs_treeLvl_masses() const {
   Base_invariant inv = _base_generic.convert_to_invariant(_v2);
   Table tab(4);
   tab.set_frame_style("-", "|");
-  tab.add_row(vector<string>{"Tree-lvl masses", "[GeV]", "Mixing angles", ""},
-              true);
+  tab.set_title("Tree-lvl masses @ Q=" + stringAuto(_renormScale));
+  tab.add_row({"", "[GeV]", "Mixing angles", ""}, true);
   tab.add_row(vector<string>{"m_h1:", stringAuto(_mh[0], "%5.1f"),
                              "s12:", stringAuto(inv.s12)});
   tab.add_row(vector<string>{"m_h2:", stringAuto(_mh[1], "%5.1f"),
@@ -1143,6 +1141,35 @@ void THDM::print_higgs_masses() const {
   tab.add_row(vector<string>{"m_h3:", stringAuto(_mh[2], "%5.1f"),
                              "cPhi:", stringAuto(inv.cPhi)});
   tab.add_row(vector<string>{"m_Hc:", stringAuto(_mHc, "%5.1f"), "", ""});
+  tab.print();
+  cout << "\n";
+}
+void THDM::print_higgs_masses() const {
+  Base_invariant inv = _base_generic.convert_to_invariant(_v2);
+  Table tab(4);
+  tab.set_frame_style("-", "|");
+  if (_mh_pole[0] > 0) {
+    tab.set_title("\"pole\" tree-lvl masses");
+    tab.add_row({"", "[GeV]", "Mixing angles", ""}, true);
+    tab.add_row(vector<string>{"m_h1:", stringAuto(_mh_pole[1], "%5.1f"),
+                               "s12:", stringAuto(inv.s12)});
+    tab.add_row(vector<string>{"m_h2:", stringAuto(_mh_pole[2], "%5.1f"),
+                               "c13:", stringAuto(inv.c13)});
+    tab.add_row(vector<string>{"m_h3:", stringAuto(_mh_pole[3], "%5.1f"),
+                               "cPhi:", stringAuto(inv.cPhi)});
+    tab.add_row(
+        vector<string>{"m_Hc:", stringAuto(_mh_pole[4], "%5.1f"), "", ""});
+  } else {
+    tab.set_title("Tree-lvl masses @ Q=" + stringAuto(_renormScale));
+    tab.add_row({"", "[GeV]", "Mixing angles", ""}, true);
+    tab.add_row(vector<string>{"m_h1:", stringAuto(_mh[0], "%5.1f"),
+                               "s12:", stringAuto(inv.s12)});
+    tab.add_row(vector<string>{"m_h2:", stringAuto(_mh[1], "%5.1f"),
+                               "c13:", stringAuto(inv.c13)});
+    tab.add_row(vector<string>{"m_h3:", stringAuto(_mh[2], "%5.1f"),
+                               "cPhi:", stringAuto(inv.cPhi)});
+    tab.add_row(vector<string>{"m_Hc:", stringAuto(_mHc, "%5.1f"), "", ""});
+  }
   tab.print();
   cout << "\n";
 }
@@ -1184,33 +1211,48 @@ void THDM::print_neutral_higgs_eigenVectors() const {
 }
 
 bool THDM::calc_treeLvl_masses_and_mixings() {
-  // Algorithm:
-  //  1.) Calculate ordered eigenvalues of neutral Higgs mass matrix.
-  //  2.) Fix U(2) invariant angles that rotates to a diagonal mass matrix.
+  // 9 april 2019: Dont know why I have been doing different cases with Z5=0
+  // etc.
+  // Now this functions simply calculates the ordered masses from the mass
+  // matrix
+  // in the Higgs basis.
   Base_higgs higgs = _base_generic.convert_to_higgs();
 
-  // The general case where all neutral Higgs fields mix
-  if (std::abs(higgs.Z6) > 1.E-10) {
+  // constexpr static double MIN_Z = 1e-10;
 
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> M = EigenSolver(_v2, higgs);
+  // // The general case where all neutral Higgs fields mix
+  // if (std::abs(higgs.Z6) > MIN_Z)
+  // {
 
-    // M gives ordered eigenvalues by increasing size.
-    for (int i = 0; i < 3; i++) {
-      if (M.eigenvalues()[i] < 0 || std::isnan(M.eigenvalues()[i])) {
-        _console.debug << "[DEBUG]: negative eigenvalues in mass matrix, (mh["
-                       << i << "]^2 = " << M.eigenvalues()[i] << " GeV^2). \n";
-        _mh[i] = 0.;
-        return false;
-      } else
-        _mh[i] = sqrt(M.eigenvalues()[i]);
-    }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> M = EigenSolver(_v2, higgs);
+
+  // M gives ordered eigenvalues by increasing size.
+  for (int i = 0; i < 3; i++) {
+    if (M.eigenvalues()[i] < 0 || std::isnan(M.eigenvalues()[i])) {
+      _console.debug << "[DEBUG]: negative eigenvalues in mass matrix, (mh["
+                     << i << "]^2 = " << M.eigenvalues()[i] << " GeV^2). \n";
+      _mh[i] = 0.;
+      return false;
+    } else
+      _mh[i] = sqrt(M.eigenvalues()[i]);
   }
-  // Case of Z6 = 0
-  else {
-    // TODO
-    _console.warning
-        << "[ERROR]: The case of Z6 = 0 has not been implemented yet :( \n";
-  }
+  // }
+  // else if (std::abs(real(higgs.Z5)) < MIN_Z && std::abs(imag(higgs.Z5)) <
+  // MIN_Z) // Z5=Z6=0
+  // {
+  //   double m1 = sqrt(_v2 * higgs.Z1);
+  //   double m2 = sqrt(higgs.Y2 + 0.5 * (higgs.Z3 + higgs.Z4) * _v2);
+  //   _mh[0] = m1 < m2 ? m1 : m2;
+  //   _mh[1] = m1 < m2 ? m2 : m1;
+  //   _mh[2] = m1 < m2 ? m2 : m1;
+  // }
+  // // Case of Z5 neq 0, Z6 = 0
+  // else
+  // {
+  //   // TODO
+  //   _console.error << "[ERROR]: The case of Z5 not equal to 0, Z6=0 has not "
+  //                       "been implemented yet :( \n";
+  // }
 
   // Charged Higgs:
   if (higgs.Y2 + 0.5 * higgs.Z3 * _v2 < 0) {
@@ -1223,11 +1265,91 @@ bool THDM::calc_treeLvl_masses_and_mixings() {
   return true;
 }
 
+void THDM::reset_higgs_pole_masses() {
+  _mh_pole[0] = -1;
+  for (int h = 1; h <= 4; ++h)
+    _mh_pole[h] = 0.;
+}
+bool THDM::calc_higgs_pole_masses() {
+  // Timer timer("calc_higgs_pole_masses"); // DEBUG
+  _mh_pole[0] = -1.;
+
+  for (int h = 1; h <= 4; ++h)
+    _mh_pole[h] = 0.;
+
+  // Creating copy of model for iterative evolution.
+  THDM model(*this);
+  RgeConfig options;
+  options.dataOutput = false;
+  options.consoleOutput = false;
+  options.evolutionName = "temp";
+  options.twoloop = true;
+  options.perturbativity = true;
+  options.stability = true;
+  options.unitarity = true;
+  options.steps = 1;
+  model.set_logLevel(LOG_ERRORS);
+  model.set_rgeConfig(options);
+
+  // Finding all Higgs masses that satisfies mh(mu)=mu +/- DELTA_M
+  // Returns false if it breaks pert/unit/stab or makes too many iterations.
+  constexpr static double DELTA_M = 1.;
+  for (int h = 1; h <= 4; ++h) {
+    int tries = 0;
+    constexpr static int MAX_TRIES = 100;
+    for (;;) {
+      double mh = model.get_higgs_treeLvl_masses()[h - 1];
+      model.evolve_to(mh);
+      if (!model.get_rgeResults().is_okay()) {
+        _console.error << "[ERROR]: Ran into trouble when evolving model in "
+                          "calc_higgs_pole_masses().\n";
+        // if (_console.get_logLevel() >= LOG_INFO)
+        model.get_rgeResults().print();
+        return false;
+      }
+
+      mh = model.get_higgs_treeLvl_masses()[h - 1];
+      double renormScale = model.get_renormalization_scale();
+      double diff = std::abs(renormScale - mh);
+      if (diff < DELTA_M) {
+        _mh_pole[h] = mh;
+        break;
+      }
+      if (++tries > MAX_TRIES) {
+        _console.error << "[ERROR]: Ran into trouble when evolving model in "
+                          "calc_higgs_pole_masses().\n";
+        _console.info << "         Couldn't find the pole mass after " << tries
+                      << " tries.\n";
+        return false;
+      }
+    }
+  }
+  _mh_pole[0] = 1.; // Denotes that the pole masses are calculated
+
+  return true;
+}
+
+std::vector<double> THDM::get_higgs_pole_masses() {
+  if (_mh_pole[0] > 0)
+    return std::vector<double>{_mh_pole[0], _mh_pole[1], _mh_pole[2],
+                               _mh_pole[3], _mh_pole[4]};
+  else {
+    calc_higgs_pole_masses();
+    return std::vector<double>{_mh_pole[0], _mh_pole[1], _mh_pole[2],
+                               _mh_pole[3], _mh_pole[4]};
+  }
+}
+
 double THDM::get_hmass(int h) const {
   if (h < 1 || h > 4) {
     _console.error << "[ERROR]: Wrong argument in get_hmass().\n";
     return 0.;
   }
+
+  // If the pole masses have been calculated, use them.
+  if (_mh_pole[0] > 0)
+    return _mh_pole[h];
+
   if (h == 4)
     return _mHc;
   else
@@ -1597,102 +1719,38 @@ Eigen::Matrix3cd THDM::get_hll_axial(int i) const {
 }
 
 std::vector<Eigen::Matrix3cd> THDM::get_fermion_couplings() const {
-  auto R = get_rotation_matrix(_v2, get_param_higgs());
-  Eigen::Matrix3cd gV_huu, gA_huu, gV_hdd, gA_hdd, gV_hll, gA_hll;
   std::vector<Eigen::Matrix3cd> couplingMatrices;
 
-  static const std::complex<double> I(0., 1.);
-  static const std::complex<double> prefactor = -I / std::sqrt(2);
-
-  for (int i = 1; i <= 3; ++i) {
-    gV_huu.setZero();
-    gA_huu.setZero();
-    gV_hdd.setZero();
-    gA_hdd.setZero();
-    gV_hll.setZero();
-    gA_hll.setZero();
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 3; ++k) {
-        gV_huu(j, k) =
-            prefactor * (R(i - 1, 0) * real(_kU(j, k)) +
-                         real((R(i - 1, 1) - I * R(i - 1, 2)) * _rU(j, k)));
-        gA_huu(j, k) =
-            prefactor * (imag((R(i - 1, 1) - I * R(i - 1, 2)) * _rU(j, k)));
-
-        gV_hdd(j, k) =
-            prefactor * (R(i - 1, 0) * real(_kD(j, k)) +
-                         real((R(i - 1, 1) + I * R(i - 1, 2)) * _rD(j, k)));
-        gA_hdd(j, k) =
-            prefactor * (imag((R(i - 1, 1) + I * R(i - 1, 2)) * _rD(j, k)));
-
-        gV_hll(j, k) =
-            prefactor * (R(i - 1, 0) * real(_kL(j, k)) +
-                         real((R(i - 1, 1) + I * R(i - 1, 2)) * _rL(j, k)));
-        gA_hll(j, k) =
-            prefactor * (imag((R(i - 1, 1) + I * R(i - 1, 2)) * _rL(j, k)));
-      }
-    }
-    couplingMatrices.push_back(gV_huu);
-    couplingMatrices.push_back(gA_huu);
-    couplingMatrices.push_back(gV_hdd);
-    couplingMatrices.push_back(gA_hdd);
-    couplingMatrices.push_back(gV_hll);
-    couplingMatrices.push_back(gA_hll);
+  for (int h = 1; h <= 3; ++h) {
+    couplingMatrices.push_back(get_huu(h));
+    couplingMatrices.push_back(get_huu_axial(h));
+    couplingMatrices.push_back(get_hdd(h));
+    couplingMatrices.push_back(get_hdd_axial(h));
+    couplingMatrices.push_back(get_hll(h));
+    couplingMatrices.push_back(get_hll_axial(h));
   }
   return couplingMatrices;
 }
 
-std::vector<Eigen::Matrix3cd> THDM::get_fermion_couplings_normalized() const {
-  auto R = get_rotation_matrix(_v2, get_param_higgs());
-  Eigen::Matrix3cd gV_huu, gA_huu, gV_hdd, gA_hdd, gV_hll, gA_hll;
-  std::vector<Eigen::Matrix3cd> couplingMatrices;
-
-  static const std::complex<double> I(0., 1.);
-  static const std::complex<double> prefactor = -I / std::sqrt(2);
-
-  vector<double> mup = get_mup();
-  vector<double> mdn = get_mdn();
-  vector<double> ml = get_ml();
-  double v = std::sqrt(_v2);
-
-  for (int i = 1; i <= 3; ++i) {
-    gV_huu.setZero();
-    gA_huu.setZero();
-    gV_hdd.setZero();
-    gA_hdd.setZero();
-    gV_hll.setZero();
-    gA_hll.setZero();
-    for (int j = 0; j < 3; ++j) {
-      for (int k = 0; k < 3; ++k) {
-        gV_huu(j, k) = (v / std::sqrt(mup[j] * mup[k])) * prefactor *
-                       (R(i - 1, 0) * real(_kU(j, k)) +
-                        real((R(i - 1, 1) - I * R(i - 1, 2)) * _rU(j, k)));
-        gA_huu(j, k) = (v / std::sqrt(mup[j] * mup[k])) * prefactor *
-                       (imag((R(i - 1, 1) - I * R(i - 1, 2)) * _rU(j, k)));
-
-        gV_hdd(j, k) = (v / std::sqrt(mdn[j] * mdn[k])) * prefactor *
-                       (R(i - 1, 0) * real(_kD(j, k)) +
-                        real((R(i - 1, 1) + I * R(i - 1, 2)) * _rD(j, k)));
-        gA_hdd(j, k) = (v / std::sqrt(mdn[j] * mdn[k])) * prefactor *
-                       (imag((R(i - 1, 1) + I * R(i - 1, 2)) * _rD(j, k)));
-
-        gV_hll(j, k) = (v / std::sqrt(ml[j] * ml[k])) * prefactor *
-                       (R(i - 1, 0) * real(_kL(j, k)) +
-                        real((R(i - 1, 1) + I * R(i - 1, 2)) * _rL(j, k)));
-        gA_hll(j, k) = (v / std::sqrt(ml[j] * ml[k])) * prefactor *
-                       (imag((R(i - 1, 1) + I * R(i - 1, 2)) * _rL(j, k)));
-      }
-    }
-    couplingMatrices.push_back(gV_huu);
-    couplingMatrices.push_back(gA_huu);
-    couplingMatrices.push_back(gV_hdd);
-    couplingMatrices.push_back(gA_hdd);
-    couplingMatrices.push_back(gV_hll);
-    couplingMatrices.push_back(gA_hll);
+double THDM::get_mf(FermionSector fermion, int generation) const {
+  if (generation > 3 || generation < 1) {
+    _console.error << "[ERROR]: Wrong argument in get_mf.\n";
+    return 0.;
   }
-  return couplingMatrices;
+  switch (fermion) {
+  case UP: {
+    return _mup[generation - 1];
+  }
+  case DOWN: {
+    return _mdn[generation - 1];
+  }
+  case LEPTON: {
+    return _ml[generation - 1];
+  }
+  default:
+    return 0.;
+  }
 }
-
 std::vector<double> THDM::get_VV_couplings() const {
   auto R = get_rotation_matrix(_v2, get_param_higgs());
   return std::vector<double>{R(0, 0), R(1, 0), R(2, 0)};
@@ -1938,6 +1996,11 @@ void THDM::print_yukawa() const {
   cout << "\n";
 }
 
+void THDM::clear_calculated_quantities() {
+  _mh_pole[0] = -1.; // Denotes that they have not been calculated
+  for (int h = 1; h <= 4; ++h)
+    _mh_pole[h] = 0.;
+}
 void THDM::init() {
   _modelName = "THDM";
 
@@ -2032,7 +2095,10 @@ void THDM::set_fermion_masses(const vector<double> &mup,
   _ml[2] = ml[2];
 }
 
-void THDM::set_vCkm(const Eigen::Matrix3cd &VCKM) { _VCKM = VCKM; }
+void THDM::set_vCkm(const Eigen::Matrix3cd &VCKM) {
+  _VCKM = VCKM;
+  set_yukawa_type(_z2_symmetry);
+}
 
 void THDM::set_sm(const SM &sm) {
   _renormScale = sm.get_renormalization_scale();
@@ -2197,26 +2263,11 @@ void THDM::write_to_data_files(const double &t) {
                   vector<double>{exp(t), aU, 1. / tan(_base_generic.beta)});
 
   vector<double> masses = get_higgs_treeLvl_masses();
-  // vector<double> poleMasses = _spheno.get_output();
   masses.insert(masses.begin(), exp(t));
-  // masses.insert(masses.end(), poleMasses.begin(), poleMasses.end());
   _files.add_line(_massesFile, masses);
 }
 
-#ifdef SPHENO
-bool THDM::run_spheno(const int massLoopLvl) {
-  _console.info << "Running SPheno...\n";
-  return _spheno.run(*this, massLoopLvl);
-}
-
-vector<double> THDM::get_spheno_output() const { return _spheno.get_output(); }
-
-void THDM::print_spheno_results() const { _spheno.print(); }
-
-#endif
-
-void THDM::write_slha_file(const int sphenoLoopLvl,
-                           const string &fileName) const {
+void THDM::write_slha_file(const string &fileName) const {
 
   vector<SLHA_BLOCK> blocks; // All blocks that will be in the file.
 
@@ -2322,128 +2373,6 @@ void THDM::write_slha_file(const int sphenoLoopLvl,
   blocks.back().add_parameter(2, _g2, "g2");
   blocks.back().add_parameter(3, _g3, "g3");
 
-  // SPheno input
-  if (sphenoLoopLvl != -1) {
-    int loopCorrectedMasses = sphenoLoopLvl > 0 ? 1 : 0;
-    int TwoLoopHiggsMassCorr = sphenoLoopLvl == 2 ? 1 : 0;
-    int calcDecays = 1;
-
-    blocks.emplace_back("MODSEL", "");
-    blocks.back().add_parameter(1, 1, "1/0: High/low scale input");
-    blocks.back().add_parameter(2, 1, "Boundary Condition");
-    blocks.back().add_parameter(5, 2, "CP violation");
-    blocks.back().add_parameter(6, 1, "Generation Mixing");
-
-    blocks.emplace_back("SMINPUTS", "Standard Model inputs");
-    blocks.back().add_parameter(2, 1.166370E-05, "G_F,Fermi constant");
-    blocks.back().add_parameter(3, 1.187000E-01, "alpha_s(MZ) SM MSbar");
-    blocks.back().add_parameter(4, 9.118870E+01, "Z-boson pole mass");
-    blocks.back().add_parameter(5, 4.180000E+00, "m_b(mb) SM MSbar");
-    blocks.back().add_parameter(6, 1.735000E+02, "m_top(pole)");
-    blocks.back().add_parameter(7, 1.776690E+00, "m_tau(pole)");
-
-    blocks.emplace_back("SPhenoInput", "SPheno specific input");
-    blocks.back().add_parameter(1, -1, "error level");
-    blocks.back().add_parameter(2, 0, "SPA conventions");
-    blocks.back().add_parameter(7, TwoLoopHiggsMassCorr,
-                                "Skip 2-loop Higgs corrections");
-    blocks.back().add_parameter(8, 3, "Method used for two-loop calculation");
-    blocks.back().add_parameter(9, 1, "Gaugeless limit used at two-loop");
-    blocks.back().add_parameter(10, 0, "safe-mode used at two-loop");
-    blocks.back().add_parameter(
-        12, 1.000E-04, "write only branching ratios larger than this value");
-    blocks.back().add_parameter(11, calcDecays, "calculate branching ratios");
-    blocks.back().add_parameter(
-        13, 3, "3-Body decays: none (0), fermion (1), scalar (2), both (3)");
-    blocks.back().add_parameter(14, 1,
-                                "Run couplings to scale of decaying particle");
-    blocks.back().add_parameter(
-        15, 1.000E-30, "write only decay if width larger than this value");
-    blocks.back().add_parameter(16, calcDecays, "One-loop decays");
-    blocks.back().add_parameter(
-        19, -2,
-        "Matching order (-2:automatic, -1:pole, 0-2: tree, one- & two-loop)");
-    blocks.back().add_parameter(31, -1,
-                                "fixed GUT scale (-1: dynamical GUT scale)");
-    blocks.back().add_parameter(32, 0, "Strict unification");
-    blocks.back().add_parameter(33, get_renormalization_scale(),
-                                "Renormalization scale, Q");
-    blocks.back().add_parameter(34, 1.000E-04, "Precision of mass calculation");
-    blocks.back().add_parameter(35, 40, "Maximal number of iterations");
-    blocks.back().add_parameter(
-        36, 5, "Minimal number of iterations before discarding points");
-    blocks.back().add_parameter(37, 1, "Set Yukawa scheme");
-    blocks.back().add_parameter(38, 1, "1- or 2-Loop RGEs");
-    blocks.back().add_parameter(
-        50, 1,
-        "Majorana phases: use only positive masses (put 0 to use file with "
-        "CalcHep/Micromegas!)");
-    blocks.back().add_parameter(51, 0, "Write Output in CKM basis");
-    blocks.back().add_parameter(52, 0,
-                                "Write spectrum in case of tachyonic states");
-    blocks.back().add_parameter(55, loopCorrectedMasses,
-                                "Calculate loop corrected masses");
-    blocks.back().add_parameter(57, 1, "Calculate low energy constraints");
-    blocks.back().add_parameter(65, 1, "Solution tadpole equation");
-    blocks.back().add_parameter(66, 1, "Two-Scale Matching");
-    blocks.back().add_parameter(67, 1, "effective Higgs mass calculation");
-    blocks.back().add_parameter(75, 0, "Write WHIZARD files");
-    blocks.back().add_parameter(76, calcDecays, "Write HiggsBounds file");
-    blocks.back().add_parameter(77, 0,
-                                "Output for MicrOmegas (running masses for "
-                                "light quarks; real mixing matrices)");
-    blocks.back().add_parameter(
-        78, 0, "Output for MadGraph (writes also vanishing blocks)");
-    blocks.back().add_parameter(
-        79, 0, "Write WCXF files (exchange format for Wilson coefficients)");
-    blocks.back().add_parameter(86, 0.,
-                                "Maximal width to be counted as invisible in "
-                                "Higgs decays; -1: only LSP");
-    blocks.back().add_parameter(
-        440, 0, "Tree-level unitarity constraints (limit s->infinity)");
-    blocks.back().add_parameter(441, 1,
-                                "Full tree-level unitarity constraints");
-    blocks.back().add_parameter(442, 1000., "sqrt(s_min)");
-    blocks.back().add_parameter(443, 2000., "sqrt(s_max)");
-    blocks.back().add_parameter(444, 5, "steps");
-    blocks.back().add_parameter(445, 0, "running");
-    blocks.back().add_parameter(
-        510, 1., "Write tree level values for tadpole solutions");
-    blocks.back().add_parameter(515, 0, "Write parameter values at GUT scale");
-    blocks.back().add_parameter(
-        520, 1.,
-        "Write effective Higgs couplings (HiggsBounds blocks): put 0 to use "
-        "file with MadGraph!");
-    blocks.back().add_parameter(
-        521, 0., "Diphoton/Digluon widths including higher order");
-    blocks.back().add_parameter(
-        525, 0., "Write loop contributions to diphoton decay of Higgs");
-    blocks.back().add_parameter(530, 0., "Write Blocks for Vevacious");
-
-    blocks.emplace_back("DECAYOPTIONS",
-                        "Options to turn on/off specific decays");
-    blocks.back().add_parameter(1, calcDecays, "Calc 3-Body decays of Fu");
-    blocks.back().add_parameter(2, calcDecays, "Calc 3-Body decays of Fe");
-    blocks.back().add_parameter(3, calcDecays, "Calc 3-Body decays of Fd");
-    blocks.back().add_parameter(1001, calcDecays, "Loop Decay of Fu");
-    blocks.back().add_parameter(1002, calcDecays, "Loop Decay of Fe");
-    blocks.back().add_parameter(1003, calcDecays, "Loop Decay of Fd");
-    blocks.back().add_parameter(1004, calcDecays, "Loop Decay of hh");
-    blocks.back().add_parameter(1005, calcDecays, "Loop Decay of Ah");
-    blocks.back().add_parameter(1006, calcDecays, "Loop Decay of Hm");
-    blocks.back().add_parameter(
-        1114, 0., "U-factors (0: off, 1:p2_i=m2_i, 2:p2=0, p3:p2_i=m2_1)");
-    blocks.back().add_parameter(
-        1115, 1., "Use loop-corrected masses for external states ");
-    blocks.back().add_parameter(
-        1116, 0.,
-        "OS values for W,Z and fermions (0: off, 1:g1,g2,v 2:g1,g2,v,Y_i)");
-    blocks.back().add_parameter(1117, 0., "Use defined counter-terms");
-    blocks.back().add_parameter(
-        1118, 1.,
-        "Use everywhere loop-corrected masses for loop-induced decays");
-  }
-
   SLHA_FILE file("2HDM SLHA file created by 2HDME");
   file.add_blocks(blocks);
   file.save_to_file(fileName);
@@ -2521,8 +2450,6 @@ void THDM::get_coupling_hdu(int h, int d, int u, std::complex<double> &cs,
   if (h != 4) // Only Hc couples u and d
     return;
 
-  double mHp = get_hmass(4);
-
   if ((u <= 3) && (u >= 1) && (d <= 3) && (d >= 1)) {
 
     Eigen::Matrix3cd gR = _VCKM * _rD;
@@ -2530,22 +2457,6 @@ void THDM::get_coupling_hdu(int h, int d, int u, std::complex<double> &cs,
 
     complex<double> rd = gR(u - 1, d - 1);
     complex<double> ru = gL(u - 1, d - 1);
-
-    double mdms = _mdn[d-1];
-    double Qinit = _renormScale;
-    double mums = _mup[u-1]; 
-
-    double mdrun =
-        run_qmass_MSbar(mdms, Qinit, mHp, get_qmass_pole(6), get_qmass_pole(5));
-    double murun =
-        run_qmass_MSbar(mums, Qinit, mHp, get_qmass_pole(6), get_qmass_pole(5));
-
-    if (mdrun > 0) {
-      rd = rd / mdms * mdrun;
-    }
-    if (murun > 0) {
-      ru = ru / mums * murun;
-    }
 
     cs = -I * 0.5 * (rd - ru);
     cp = -I * 0.5 * (rd + ru);
@@ -2563,20 +2474,6 @@ void THDM::get_coupling_hdd(int h, int f1, int f2, complex<double> &cs,
   if ((f1 <= 3) && (f1 >= 1) && (f2 <= 3) && (f2 >= 1)) {
     cs = get_hdd(h)(f1 - 1, f2 - 1);
     cp = get_hdd_axial(h)(f1 - 1, f2 - 1);
-
-    if (f1 == f2) {
-      double mms = _mdn[f1-1];
-      // Starting scale for MSbar mass evolution
-      double Qinit = _renormScale; 
-
-      double mrun = run_qmass_MSbar(mms, Qinit, get_hmass(h), get_qmass_pole(6),
-                                    get_qmass_pole(5));
-
-      if (mrun > 0) {
-        cs = cs / mms * mrun;
-        cp = cp / mms * mrun;
-      }
-    }
   }
 }
 
@@ -2591,19 +2488,6 @@ void THDM::get_coupling_huu(int h, int f1, int f2, complex<double> &cs,
   if ((f1 <= 3) && (f1 >= 1) && (f2 <= 3) && (f2 >= 1)) {
     cs = get_huu(h)(f1 - 1, f2 - 1);
     cp = get_huu_axial(h)(f1 - 1, f2 - 1);
-
-    double mms = _mup[f1-1]; 
-    double Qinit = _renormScale;
-
-    double mrun = run_qmass_MSbar(mms, Qinit, get_hmass(h), get_qmass_pole(6),
-                                  get_qmass_pole(5));
-
-    if (f1 == f2) {
-      if (mrun > 0) {
-        cs = cs / mms * mrun;
-        cp = cp / mms * mrun;
-      }
-    }
   }
 }
 

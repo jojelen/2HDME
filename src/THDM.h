@@ -13,15 +13,10 @@
  *============================================================================*/
 #pragma once
 
-#include "LoggingSystem.h"
 #include "RgeModel.h"
 #include "SM.h"
 #include "Structures.h"
 #include "THDM_bases.h"
-
-#ifdef SPHENO
-#include "SPheno.h"
-#endif
 
 #include <Eigen/Dense>
 #include <complex>
@@ -65,7 +60,7 @@ public:
    * Matches 2HDM to the given SM. Sets the squared VEV and gauge couplings.
    * From the CKM matrix and the fermion masses, it calculates the Yukawa
    * matrices.
-   * 
+   *
    * @params:
    *   mu: Renormalization scale at which the THDM is defined.
    *   v2: Squared VEV.
@@ -74,9 +69,10 @@ public:
    *   VCKM: CKM matrix.
    */
   void set_sm(const SM &sm);
-  void set_sm(const double &mu, const double &v2, const std::vector<double> &g_i,
-              const std::vector<double> &mup, const std::vector<double> &mdn,
-              const std::vector<double> &ml, const Eigen::Matrix3cd &VCKM);
+  void set_sm(const double &mu, const double &v2,
+              const std::vector<double> &g_i, const std::vector<double> &mup,
+              const std::vector<double> &mdn, const std::vector<double> &ml,
+              const Eigen::Matrix3cd &VCKM);
 
   /**
    * @brief: Simple functions to set/get specific values manually:
@@ -195,8 +191,10 @@ public:
    *
    * Sets tanb = v2 / v1, which relates the generic potential to the Higgs
    * potential through a SU(2) Higgs flavor transformation.
+   *
+   * Proceeds to call set_param_gen.
    */
-  void set_tanb(const double &tanb);
+  bool set_tanb(const double &tanb);
 
   /**
    * @brief: U(1) transformation of H_2
@@ -233,7 +231,7 @@ public:
   bool is_perturbative() const override;
 
   /**
-   * @brief: Checks perturbativity
+   * @brief: Checks unitary
    *
    * This method checks whether the couplings of the Higgs fullfills unitarity
    *
@@ -332,28 +330,29 @@ public:
   std::vector<double> get_qi12() const;
   std::vector<double> get_qi22() const;
 
-  // Retrieve couplings to fermions:
-  // The 3x3 matrix is the coupling of (h_i ff) and is diagonal in cases of no
-  // FCNCs.
-  Eigen::Matrix3cd get_huu(int i) const;
-  Eigen::Matrix3cd get_hdd(int i) const;
-  Eigen::Matrix3cd get_hll(int i) const;
-  // Coupling matrices of (h_i f igamma_5 f), i.e. the axial current.
-  Eigen::Matrix3cd get_huu_axial(int i) const;
-  Eigen::Matrix3cd get_hdd_axial(int i) const;
-  Eigen::Matrix3cd get_hll_axial(int i) const;
+  /**
+   * @brief: Neutral Higgs-fermion couplings
+   *
+   * The 3x3 matrix is the coupling of (h_i ff) and is diagonal in cases of no
+   * FCNCs.
+   *
+   * axial: Coupling matrices of (h_i f igamma_6 f).
+   */
+  Eigen::Matrix3cd get_huu(int h) const;
+  Eigen::Matrix3cd get_hdd(int h) const;
+  Eigen::Matrix3cd get_hll(int h) const;
+  Eigen::Matrix3cd get_huu_axial(int h) const;
+  Eigen::Matrix3cd get_hdd_axial(int h) const;
+  Eigen::Matrix3cd get_hll_axial(int h) const;
+  // All the couplings. Components:
+  // h_1uu, h_1uu_axial, h_1dd, h_1 dd_axial, h_1 ll, h_1 ll_axial
+  // + h_2 and h_3. Total of 18 matrices.
+  std::vector<Eigen::Matrix3cd> get_fermion_couplings() const;
 
   /**
-   * @brief: Retrieves all the fermion couplings
-   *
-   * Components:
-   * h_1uu, h_1uu_axial, h_1dd, h_1 dd_axial, h_1 ll, h_1 ll_axial
-   * + h_2 and h_3. Total of 18 matrices.
-   *
-   * The normalized ones are multiplied by a v/sqrt(mf_i mf_j) factor!
+   * @brief: Retrieves fermion mass
    */
-  std::vector<Eigen::Matrix3cd> get_fermion_couplings() const;
-  std::vector<Eigen::Matrix3cd> get_fermion_couplings_normalized() const;
+  double get_mf(FermionSector fermion, int generation) const;
 
   /**
    * @brief: Retrieves the coupling of h_i to the WW and ZZ bosons
@@ -381,13 +380,25 @@ public:
   std::complex<double> get_z2_breaking_quantity() const;
   std::vector<double> get_oblique() const; // returns (S,T,U)
 
+  /**
+   * @brief: Largest elements
+   *
+   * Retrieves the largest elements of the rF or quartic couplings.
+   * They are returned as tuples, with the first component being the name of the
+   * element as a string.
+   */
   std::tuple<std::string, int, std::complex<double>>
   get_largest_diagonal_rF() const;
   std::tuple<std::string, int, int, std::complex<double>>
   get_largest_nonDiagonal_rF() const;
   std::tuple<std::string, int, double> get_largest_lambda() const;
 
-  // Returns largest non-diagonal Yukawa element in Cheng-Sher parametrization
+  /**
+   * @brief: Cheng-Sher parameters
+   *
+   * Functions that either returns largest non-diagonal Yukawa element in
+   * Cheng-Sher parametrization.
+   */
   std::tuple<std::string, int, int, std::complex<double>>
   get_largest_nonDiagonal_lamF() const;
 
@@ -399,7 +410,8 @@ public:
 
   /**
    * @brief: Prints to console
-   */
+   **/
+  void print_higgs_treeLvl_masses() const;
   void print_higgs_masses() const;
   void print_fermion_masses() const;
   void print_potential() const;
@@ -410,22 +422,6 @@ public:
   void print_param_higgs() const;
   void print_features() const;
   void print_oblique() const;
-
-//----------------------------------------------------------------------------
-/**
- * @brief: SPheno
- *
- * loopLvl sets what level of quantum corrected mass is being fitted.
- *   0 = tree-lvl
- *   1 = 1-loop calculated with SPheno
- *   2 = Include some 2-loop contributions for neutral Higgs, also done by
- *   SPheno.
- */
-#ifdef SPHENO
-  bool run_spheno(const int massLoopLvl); // @returns false if it failed
-  std::vector<double> get_spheno_output() const;
-  void print_spheno_results() const;
-#endif
 
   //----------------------------------------------------------------------------
 
@@ -441,15 +437,9 @@ public:
    * @brief: Writes a SLHA file
    *
    * Writes all the information of the THDM to a SLHA file.
-   *
-   * The SLHA file can be used as input to SPheno.
-   *
-   * sphenoLoopLvl determines the loop level of pole mass calculations in
-   * SPheno. If sphenoLoopLvl = -1, no SPheno blocks are written.
    */
   void
-  write_slha_file(const int sphenoLoopLvl,
-                  const std::string &fileName = "LesHouches.in.THDM_GEN") const;
+  write_slha_file(const std::string &fileName = "LesHouches.in.THDM_GEN") const;
   bool set_from_slha_file(const std::string &fileName);
 
   /**
@@ -471,7 +461,31 @@ public:
    */
   bool calc_treeLvl_masses_and_mixings();
 
-  // Similar functions to 2HDMC
+  /**
+   * @brief: Calculates Higgs masses
+   *
+   * Iteratively solves for when the tree-level Higgs masses equals the
+   * renormalization scale, i.e. mh(mh_pole) = mh_pole.
+   * The results are stored in _mh_pole.
+   * These are not the formal pole masses, but should be renormalization scale
+   * invariant at least.
+   *
+   * @returns true if all could be calculated without problems.
+   */
+  bool calc_higgs_pole_masses();
+  std::vector<double> get_higgs_pole_masses();
+  void reset_higgs_pole_masses();
+
+  // These mimic the functions from 2HDMC. However, note that there is no
+  // QCD corrections to couplings to quarks like in 2HDMC. Instead they are
+  // taken from the Yukawa couplings that are defined at THDM's renormalization
+  // scale. Run the whole class to get the coupling at another scale.
+
+  /**
+   * @brief: Higgs mass
+   *
+   * @returns h={h1,h2,h3,Hc}'s mass in GeV.
+   */
   double get_hmass(int h) const;
 
   /**
@@ -498,7 +512,7 @@ public:
    * Calculates the coupling hdu between one physical Higgs state,
    * specified by h (only relevant one is charged Higgs), and two quarks
    * f1 and f2.
-   * 
+   *
    * Includes QCD running of Yukawa couplings to the Higgs mass scale.
    *
    * @params:
@@ -518,7 +532,7 @@ public:
    * specified by h, and two down-type quarks f1 and f2.
    *
    * Includes QCD running of Yukawa couplings to the Higgs mass scale.
-   * 
+   *
    * @params:
    *   h  Index of Higgs boson (1,2,3,4 = h_1, h_2, h_3, Hc)
    *   f1 First fermion (1,2,3 = d,s,b)
@@ -536,7 +550,7 @@ public:
    * specified by h, and two up-type quarks f1 and f2.
    *
    * Includes QCD running of Yukawa couplings to the Higgs mass scale.
-   * 
+   *
    * @params:
    *   h  Index of Higgs boson (1,2,3,4 = h_1,h_2,h_3,Hc)
    *   f1 First fermion (1,2,3 = u,c,t)
@@ -627,6 +641,8 @@ private:
   bool fix_treeLvl_tadpole_eqs();
 
   void init(); // Called at construction
+  void
+  clear_calculated_quantities(); // Called when manually setting parameters.
 
   void print_z2Symmetry() const; // Prints Yukawa sectors Z2 symmetry
 
@@ -654,14 +670,17 @@ private:
   double _mh[3]; // Tree-lvl neutral Higgs masses
   double _mHc;   // Tree-lvl charged Higgs mass
 
+  /**
+   * Tree-level masses that satisfy mh(mh_pole) = mh_pole.
+   *   Index h = {calculated, h1, h2, h3, Hc}.
+   *     calculated is 1 (-1) if these have (not) been calculated.
+   */
+  double _mh_pole[5] = {-1., 0., 0., 0., 0.};
+
   // @params: Standard model parameters
   Eigen::Matrix3cd _VCKM; // CKM matrix
   double _g1, _g2, _g3;   // gauge couplings ( U(1)_Y, SU(2)_W, SU(3)_c )
   double _mup[3], _mdn[3], _ml[3]; // Tree-lvl fermion masses
-
-#ifdef SPHENO
-  Spheno _spheno; // Class that handles SPheno calculations
-#endif
 
   // FileSystem handles all the output to files.
   // Each filename is stored as a string for easy access to print to it.

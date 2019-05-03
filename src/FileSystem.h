@@ -6,6 +6,12 @@
  * @author: Joel Oredsson
  *
  * Handles input/output to data files.
+ * 
+ * Usage:
+ *   FileSystem fileSystem("output/example");
+ *   fileSystem.create_file("hej.dat", true);
+ *   fileSystem.add_line("hej.dat", "hej");
+ *   fileSystem.close_streams();
  *
  *============================================================================*/
 #pragma once

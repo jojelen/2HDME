@@ -36,6 +36,7 @@ struct Global {
 
   //---------------------------------------------------------------------------
   // Misc:
+  constexpr static bool CKM_PDG_CONVENTION = true;
   constexpr static double GF = 1.1663787e-5; // Fermi's constant
   constexpr static double v = 246.21971;     // VEV
   constexpr static double alpha_e_me = 1. / 137.0359997;
@@ -53,90 +54,11 @@ struct Global {
 
   //---------------------------------------------------------------------------
   // Used by 2HDMC functions
-  // --- These masses are for compatibility test with HDECAY ---
-  // Scale for HD quark masses (HD)
-  constexpr static double Q_HD = 5.0;
-  // switch for HD quark masses (HD)
-  constexpr static bool b_HD = false;
   // Scale for strange quark mass (GeV)
   constexpr static double Q_ms = 2.0;
 };
 
-/**
-* @brief: Returns the fermion MS-bar/pole mass
-*
-* The pole masses are simply the ones in the Global struct, taken from the PDG.
-* The MS-bar masses are determined from these pole masses at the respective
-* pole mass scale.
-*/
-double get_qmass_pole(int flav);
-double get_qmass_MSbar(int flav);
-double get_dmass_pole(int d);
-double get_dmass_MSbar(int d);
-double get_umass_pole(int u);
-double get_umass_MSbar(int u);
-double get_lmass_pole(int l);
-
-/**
- * @brief: Returns the QCD beta function coefficients
- * 
- * @params:
- *   c: Loop order
- *   nf: Number of fermion flavors.
- */
-double QCD_beta(int c, int nf);
-
-/**
-  * @brief: Evaluates the running strong coupling
-  *
-  * This method evaluates the running strong coupling alpha_s in the
-  * MSbar scheme at the scale specified by Q.
-  *
-  * @params:
-  *   Q          Scale at which to evaluate the running coupling
-  *   mtop       MSbar top mass (for thresholds)
-  *   mbot       MSbar bottom mass (for thresholds)
-  *
-  * @returns The strong coupling alpha_s at the scale Q
-  */
-double run_alphas_MSbar(double Q, double mtop, double mbot);
-
-/**
-  * @brief: Evaluates running quark masses
-  *
-  * This method evaluates the running quark_mass quark_mass, initially specified
-  * at the input scale Qinit, at the new scale Qfin. The calculation is
- * performed
-  * in the MSbar scheme with variable number of active
-  * flavours and threshold matching.
-  *
-  * @params:
-  *   quark_mass The input value for the running quark mass
-  *   Qinit      Starting scale
-  *   Qfin       Final scale at which the mass is to be evaluated
-  *   mtop       MSbar top mass (for thresholds)
-  *   mbot       MSbar bottom mass (for thresholds)
-  *
-  * @returns The running mass at the scale Qfin
-  */
-double run_qmass_MSbar(double quark_mass, double Qinit, double Qfin,
-                       double mtop, double mbot);
-
-double get_gamma_tWd(int d);
-
 // Returns the CKM matrix from the Particle Data Group.
 Eigen::Matrix3cd get_pdg_ckm_matrix();
 
-/**
-* @brief Number of active flavours
-*
-* This method returns the number of active quark flavours to be used at
-* a certain mass scale when decoupling the heavier quarks. The thresholds
-* are determined from the quark MS-bar masses.
-*
-* @param M The scale for which the number of flavours is desired
-*
-* @returns The number of quark flavours active at this scale
-*/
-int get_Nactivef(double M);
 } // namespace THDME

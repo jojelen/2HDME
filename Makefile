@@ -40,24 +40,20 @@ BINDIR=bin
 # Source code:
 RGESRC=BaseModel.cpp RgeModel.cpp THDM.cpp RGE.cpp \
 HelpFunctions.cpp FileSystem.cpp LoggingSystem.cpp SM.cpp\
-THDM_bases.cpp Structures.cpp Globals.cpp GslIntegration.cpp\
-SLHA.cpp Oblique.cpp
+THDM_bases.cpp Structures.cpp Globals.cpp \
+SLHA.cpp Oblique.cpp NewModel.cpp 
 OBJECTS=$(RGESRC:.cpp=.o)
 
 LIB=lib2HDME.a
 LDFLAGS+=-L$(LIBDIR) -l2HDME -lgsl -lgslcblas -lm
 LIBS=
 
-DEMOS=DemoRGE DemoSM
+DEMOS=DemoRGE DemoSM DemoNewModel
 PROG=
 
 # Comment to disable GNU-Plot
 CFLAGS+=-DGNUPLOT
 RGESRC+=GnuPlotSystem.cpp
-
-# To enable SPheno functionality
-# CFLAGS+=-DSPHENO
-# RGESRC+=SPheno.cpp
 
 .PHONY: directories lib clean distclean
 

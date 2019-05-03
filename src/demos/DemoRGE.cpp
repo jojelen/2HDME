@@ -14,9 +14,6 @@
 #include "SM.h"
 #include "THDM.h"
 #include "HelpFunctions.h"
-#ifdef HiggsBounds
-#include "HBHS.h"
-#endif
 
 #include <complex>
 #include <iostream>
@@ -57,22 +54,11 @@ int main(int argc, char *argv[])
   // set before this, since tanb must be specified.
   thdm.set_yukawa_type(TYPE_I);
 
-  // Calculates 1-loop masses if SPheno is enabled:
-  #ifdef SPHENO 
-  thdm.run_spheno(1); // Argument is loop lvl (0, 1 or 2).
-  #endif
- 
   thdm.print_all();
-
-  #ifdef HiggsBounds
-  std::vector<double> hbhsOutput;
-  HBHS_check(thdm,hbhsOutput);
-  #endif
 
   // One can also write a SLHA file of the THDM and SM
   sm.write_slha_file();
-  int sphenoLoopOrder = 0; // Loop order for mass calculations if SPheno is used
-  thdm.write_slha_file(sphenoLoopOrder, "DemoRGE_SLHA");
+  thdm.write_slha_file("DemoRGE_SLHA");
 
   // The options for evolving a THDM object can configured by specifying a
   // RgeConfig struct:
@@ -107,7 +93,7 @@ int main(int argc, char *argv[])
             << std::abs(100 * genFinal.Lambda1 / gen.Lambda1) << " %\n";
 
   // We can save the evolved model in another file
-  thdm.write_slha_file(sphenoLoopOrder, "DemoRGE_evolvedThdm");
+  thdm.write_slha_file("DemoRGE_evolvedThdm");
   
   // To evolve downwards in energy, all one have to do is to change the 
   // finalEnergyScale of RgeConfig.

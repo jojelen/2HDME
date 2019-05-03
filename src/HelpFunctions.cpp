@@ -6,7 +6,6 @@
  * @author: Joel Oredsson
  *============================================================================*/
 #include "HelpFunctions.h"
-#include "EDM.h"
 #include "Globals.h"
 
 #include "unistd.h"
@@ -109,29 +108,28 @@ double alpha_s(const double &mu)
 {
   static std::vector<double> matchingScales = {Global::mb, Global::mt};
 
-
-  if ( Global::mb <= mu && mu <= Global::mt)
+  if (Global::mb <= mu && mu <= Global::mt)
   {
-    double b0 = (33. - 2. *5 )/(12. * M_PI); 
-    return Global::alpha_s_mZ / (1. + Global::alpha_s_mZ * b0 * std::log(mu*mu/(Global::mZ*Global::mZ)));
+    double b0 = (33. - 2. * 5) / (12. * M_PI);
+    return Global::alpha_s_mZ / (1. + Global::alpha_s_mZ * b0 * std::log(mu * mu / (Global::mZ * Global::mZ)));
   }
   else if (mu > Global::mt)
   {
-    const static double b0 = (33. - 2. *5 )/(12. * M_PI); 
-    const static double b0_6 = (33. - 2. *6 )/(12. * M_PI); 
-    double alpha_s_mt = Global::alpha_s_mZ / (1. + Global::alpha_s_mZ * b0 * std::log(Global::mt*Global::mt/(Global::mZ*Global::mZ)));
-    return alpha_s_mt / (1. + alpha_s_mt * b0_6 * std::log(mu*mu/(Global::mt*Global::mt)));
+    const static double b0 = (33. - 2. * 5) / (12. * M_PI);
+    const static double b0_6 = (33. - 2. * 6) / (12. * M_PI);
+    double alpha_s_mt = Global::alpha_s_mZ / (1. + Global::alpha_s_mZ * b0 * std::log(Global::mt * Global::mt / (Global::mZ * Global::mZ)));
+    return alpha_s_mt / (1. + alpha_s_mt * b0_6 * std::log(mu * mu / (Global::mt * Global::mt)));
   }
-  else if ( 1. < mu && mu < Global::mb)
+  else if (1. < mu && mu < Global::mb)
   {
-    const static double b0 = (33. - 2. *5 )/(12. * M_PI); 
-    const static double b0_4 = (33. - 2. *4 )/(12. * M_PI); 
-    const static double alpha_s_mb = Global::alpha_s_mZ / (1. + Global::alpha_s_mZ * b0 * std::log(Global::mb*Global::mb/(Global::mZ*Global::mZ)));
-    return alpha_s_mb / (1. + alpha_s_mb * b0_4 * std::log(mu*mu/(Global::mb*Global::mb)));
+    const static double b0 = (33. - 2. * 5) / (12. * M_PI);
+    const static double b0_4 = (33. - 2. * 4) / (12. * M_PI);
+    const static double alpha_s_mb = Global::alpha_s_mZ / (1. + Global::alpha_s_mZ * b0 * std::log(Global::mb * Global::mb / (Global::mZ * Global::mZ)));
+    return alpha_s_mb / (1. + alpha_s_mb * b0_4 * std::log(mu * mu / (Global::mb * Global::mb)));
   }
-  else 
+  else
     std::cout << "[ERROR]: Wrong argument in alpha_s(mu).\n";
-  
+
   return 0.;
 }
 
@@ -184,13 +182,13 @@ std::string stringAuto(const double &number, const char *format)
   // return streamObj.str();       // Get string from output string stream
 
   char buffer[32];
-	memset(buffer, 0, sizeof(buffer));
+  memset(buffer, 0, sizeof(buffer));
   if (format != nullptr)
     snprintf(buffer, sizeof(buffer), format, number);
   else
-	  snprintf(buffer, sizeof(buffer), "%12.4e", number);
- 
-	return std::string(buffer);
+    snprintf(buffer, sizeof(buffer), "%12.4e", number);
+
+  return std::string(buffer);
 }
 
 std::string stringAuto(const std::complex<double> &cNumber)
@@ -253,7 +251,7 @@ Timer::Timer(const std::string &message) : _message(message)
 
 Timer::~Timer()
 {
-  std::cout << "Destroying timer!\n"; // DEBUG
+  // std::cout << "Destroying timer!\n"; // DEBUG
   _end = std::chrono::high_resolution_clock::now();
   _duration = _end - _start;
   printDuration();
@@ -289,6 +287,18 @@ int jac(double t, const double y[], double *dfdy, double dfdt[], void *params)
   return GSL_SUCCESS;
 }
 
+double RAND()
+{
+  static gsl_rng *rng = gsl_rng_alloc(gsl_rng_taus2);
+  static bool initialized = false;
+  if (!initialized)
+  {
+    int seed = time(0);
+    gsl_rng_set(rng, seed); // Seed the random number generator
+    initialized = true;
+  }
+  return gsl_rng_uniform(rng);
+}
 //------------------------------------------------------------------------------
 
 void BiUnitary(Eigen::Matrix3cd &kU, Eigen::Matrix3cd &kD, Eigen::Matrix3cd &kL,
@@ -298,6 +308,9 @@ void BiUnitary(Eigen::Matrix3cd &kU, Eigen::Matrix3cd &kD, Eigen::Matrix3cd &kL,
 {
   using namespace std;
   using namespace Eigen;
+
+  // Minimum value of fermion mass squared before regarded as massless.
+  static constexpr double MIN_M2 = 1e-15;
 
   // Temporary matrices of kappa and rho matrices. These should be the
   // potentially non-diagonal matrices in the fermion flavor eigenbasis.
@@ -318,91 +331,185 @@ void BiUnitary(Eigen::Matrix3cd &kU, Eigen::Matrix3cd &kD, Eigen::Matrix3cd &kL,
   kLHkL.compute(kL_temp.adjoint() * kL_temp);
   for (unsigned int i = 0; i < 3; i++)
   {
-    kL(i, i) = sqrt(real(kLHkL.eigenvalues()[i]));
-    kL_inverse(i, i) = 1. / kL(i, i);
+    double ml2 = real(kLHkL.eigenvalues()[i]);
+    kL(i, i) = ml2 > MIN_M2 ? sqrt(ml2) : 0.;
+    kL_inverse(i, i) = ml2 > MIN_M2 ? 1. / kL(i, i) : 1.;
     ml[i] = real(kL(i, i)) * sqrt(v2 / 2.);
   }
-  ComplexEigenSolver<Matrix3cd> kLkLH;
-  kLkLH.compute(kL_temp * kL_temp.adjoint());
-  Matrix3cd VL_L = kLkLH.eigenvectors().adjoint();
-  Matrix3cd VL_R = kL_inverse * VL_L * kL_temp;
-  rL = VL_L * rL_temp * VL_R.adjoint();
-
-  // Up-Quarks
-  ComplexEigenSolver<Matrix3cd> kUHkU;
-  kU.setZero();
-  Matrix3cd kU_inverse;
-  kU_inverse.setZero();
-  kUHkU.compute(kU_temp.adjoint() * kU_temp);
-  for (unsigned int i = 0; i < 3; i++)
+  if (ml[0] < MIN_M2 && ml[1] < MIN_M2 && ml[2] < MIN_M2)
+    rL.setZero();
+  else
   {
-    kU(i, i) = sqrt(real(kUHkU.eigenvalues()[i]));
-    kU_inverse(i, i) = 1. / kU(i, i);
-    mup[i] = real(kU(i, i)) * sqrt(v2 / 2.);
+    ComplexEigenSolver<Matrix3cd> kLkLH;
+    kLkLH.compute(kL_temp * kL_temp.adjoint());
+    Matrix3cd VL_L = kLkLH.eigenvectors().adjoint();
+    Matrix3cd VL_R = kL_inverse * VL_L * kL_temp;
+    rL = VL_L * rL_temp * VL_R.adjoint();
   }
-  ComplexEigenSolver<Matrix3cd> kUkUH;
-  kUkUH.compute(kU_temp * kU_temp.adjoint());
-  Matrix3cd VU_L = kUkUH.eigenvectors().adjoint();
-  Matrix3cd VU_R = kU_inverse * VU_L * kU_temp;
 
-  // Down-Quarks
-  ComplexEigenSolver<Matrix3cd> kDHkD;
-  kD.setZero();
-  Matrix3cd kD_inverse;
-  kD_inverse.setZero();
-  kDHkD.compute(kD_temp.adjoint() * kD_temp);
-  for (unsigned int i = 0; i < 3; i++)
+  if (kU.isZero(1e-10) && kD.isZero(1e-10))
   {
-    kD(i, i) = sqrt(real(kDHkD.eigenvalues()[i]));
-    kD_inverse(i, i) = 1. / kD(i, i);
-    mdn[i] = real(kD(i, i)) * sqrt(v2 / 2.);
+    kU.setZero();
+    kD.setZero();
+    rU.setZero();
+    rD.setZero();
+    for (int f = 0; f < 3; ++f)
+    {
+      mup[f] = 0.;
+      mdn[f] = 0.;
+    }
+    VCKM.setIdentity();
   }
-  ComplexEigenSolver<Matrix3cd> kDkDH;
-  kDkDH.compute(kD_temp * kD_temp.adjoint());
-  Matrix3cd VD_L = kDkDH.eigenvectors().adjoint();
-  Matrix3cd VD_R = kD_inverse * VD_L * kD_temp;
+  else
+  {
+    // Up-Quarks
+    ComplexEigenSolver<Matrix3cd> kUHkU;
+    kU.setZero();
+    Matrix3cd kU_inverse;
+    kU_inverse.setZero();
+    kUHkU.compute(kU_temp.adjoint() * kU_temp);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+      double mup2 = real(kUHkU.eigenvalues()[i]);
+      kU(i, i) = mup2 > MIN_M2 ? sqrt(mup2) : 0.;
+      kU_inverse(i, i) = mup2 > MIN_M2 ? 1. / kU(i, i) : 1.;
+      mup[i] = real(kU(i, i)) * sqrt(v2 / 2.);
+    }
+    ComplexEigenSolver<Matrix3cd> kUkUH;
+    kUkUH.compute(kU_temp * kU_temp.adjoint());
+    Matrix3cd VU_L = kUkUH.eigenvectors().adjoint();
+    Matrix3cd VU_R = kU_inverse * VU_L * kU_temp;
 
-  // Calculate new temporary CKM matrix
-  Matrix3cd VCKM_temp = VU_L * VD_L.adjoint();
+    // Down-Quarks
+    ComplexEigenSolver<Matrix3cd> kDHkD;
+    kD.setZero();
+    Matrix3cd kD_inverse;
+    kD_inverse.setZero();
+    kDHkD.compute(kD_temp.adjoint() * kD_temp);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+      double mdn2 = real(kDHkD.eigenvalues()[i]);
+      kD(i, i) = mdn2 > MIN_M2 ? sqrt(mdn2) : 0.;
+      kD_inverse(i, i) = mdn2 > MIN_M2 ? 1. / kD(i, i) : 1.;
+      mdn[i] = real(kD(i, i)) * sqrt(v2 / 2.);
+    }
+    ComplexEigenSolver<Matrix3cd> kDkDH;
+    kDkDH.compute(kD_temp * kD_temp.adjoint());
+    Matrix3cd VD_L = kDkDH.eigenvectors().adjoint();
+    Matrix3cd VD_R = kD_inverse * VD_L * kD_temp;
 
-  /*  We will rephase the quarks to get the CKM matrix to
-    the PDG phase convention. This is done with two diagonal
-    unitary matrices that transforms the left and right
-    handed quarks.
-  */
-  Matrix3cd P_U, P_D;
-  P_U.setZero();
-  P_D.setZero();
+    // Calculate new temporary CKM matrix
+    VCKM = VU_L * VD_L.adjoint();
 
-  // std::cout << "VCKM_temp:\n" << VCKM_temp << std::endl; // DEBUG
+    /**
+   * CKM conventions.
+   * 
+   * If Global::CKM_PDG_CONVENTION=true, then the CKM matrix is transformed.
+   * 
+   * We will rephase the quarks to get the CKM matrix to
+   * the PDG phase convention. This is done with two diagonal
+   * unitary matrices that transforms the left and right
+   * handed quarks.
+   */
+    Matrix3cd P_U, P_D;
+    if (Global::CKM_PDG_CONVENTION)
+    {
+      toPdgConventions(VCKM, P_U, P_D);
+    }
+    else
+    {
+      P_U.setIdentity();
+      P_D.setIdentity();
+    }
+    // The rho matrices are also transformed.
+    rU = P_U * VU_L * rU_temp * VU_R.adjoint() * P_U.adjoint();
+    rD = P_D * VD_L * rD_temp * VD_R.adjoint() * P_D.adjoint();
+  }
+}
+void toPdgConventions(Eigen::Matrix3cd &VCKM)
+{
+  Eigen::Matrix3cd PU, PD;
+  toPdgConventions(VCKM, PU, PD);
+}
 
+void toPdgConventions(Eigen::Matrix3cd &VCKM, Eigen::Matrix3cd &PU, Eigen::Matrix3cd &PD)
+{
+  PU.setZero();
+  PD.setZero();
+  Eigen::Matrix3cd VCKM_temp = VCKM;
   // We need to derive the phases of these matrices, P_U, P_D.
-  double s13 = std::abs(VCKM_temp(0, 2));
+  double s13 = std::abs(VCKM(0, 2));
   double c13 = sqrt(1. - s13 * s13);
-  double s23 = std::abs(VCKM_temp(1, 2)) / c13;
+  double s23 = std::abs(VCKM(1, 2)) / c13;
   double c23 = sqrt(1. - s23 * s23);
-  double s12 = std::abs(VCKM_temp(0, 1)) / c13;
+  double s12 = std::abs(VCKM(0, 1)) / c13;
   double c12 = sqrt(1. - s12 * s12);
   double cosdelta = (s12 * s12 * s23 * s23 + c12 * c12 * c23 * c23 * s13 * s13 -
-                     std::abs(VCKM_temp(2, 0)) * std::abs(VCKM_temp(2, 0))) /
+                     std::abs(VCKM(2, 0)) * std::abs(VCKM(2, 0))) /
                     (2. * s12 * s23 * c12 * c23 * s13);
-  double sindelta = sqrt(abs(1. - cosdelta * cosdelta));
-  complex<double> eIdelta = complex<double>(cosdelta, sindelta);
+  double sindelta = sqrt(std::abs(1. - cosdelta * cosdelta));
+  std::complex<double> eIdelta = std::complex<double>(cosdelta, sindelta);
 
-  P_D(0, 0) = VCKM_temp(0, 0) / std::abs(VCKM_temp(0, 0));
-  P_D(1, 1) = VCKM_temp(0, 1) / std::abs(VCKM_temp(0, 1));
-  P_D(2, 2) = eIdelta * VCKM_temp(0, 2) / std::abs(VCKM_temp(0, 2));
+  PD(0, 0) = VCKM(0, 0) / std::abs(VCKM(0, 0));
+  PD(1, 1) = VCKM(0, 1) / std::abs(VCKM(0, 1));
+  PD(2, 2) = eIdelta * VCKM(0, 2) / std::abs(VCKM(0, 2));
 
-  P_U(0, 0) = complex<double>(1., 0.);
-  P_U(1, 1) = conj(VCKM_temp(1, 2)) * P_D(2, 2) / std::abs(VCKM_temp(1, 2));
-  P_U(2, 2) = conj(VCKM_temp(2, 2)) * P_D(2, 2) / std::abs(VCKM_temp(2, 2));
+  PU(0, 0) = std::complex<double>(1., 0.);
+  PU(1, 1) = conj(VCKM(1, 2)) * PD(2, 2) / std::abs(VCKM(1, 2));
+  PU(2, 2) = conj(VCKM(2, 2)) * PD(2, 2) / std::abs(VCKM(2, 2));
 
   // The CKM matrix transforms during quark rephasing as
-  VCKM = P_U * VCKM_temp * P_D.adjoint();
+  VCKM = PU * VCKM_temp * PD.adjoint();
+}
+void getCkmParams(const Eigen::Matrix3cd &VCKM, double &s12, double &s13, double &s23, double &delta)
+{
+  s13 = std::abs(VCKM(0, 2));
+  double c13 = sqrt(1. - s13 * s13);
+  s23 = std::abs(VCKM(1, 2)) / c13;
+  double c23 = sqrt(1. - s23 * s23);
+  s12 = std::abs(VCKM(0, 1)) / c13;
+  double c12 = sqrt(1. - s12 * s12);
+  double cosdelta = (s12 * s12 * s23 * s23 + c12 * c12 * c23 * c23 * s13 * s13 -
+                     std::abs(VCKM(2, 0)) * std::abs(VCKM(2, 0))) /
+                    (2. * s12 * s23 * c12 * c23 * s13);
+  double sindelta = sqrt(std::abs(1. - cosdelta * cosdelta));
+  std::complex<double> eIdelta = std::complex<double>(cosdelta, sindelta);
+  delta = std::arg(eIdelta);
+}
 
-  // The rho matrices are also transformed.
-  rU = P_U * VU_L * rU_temp * VU_R.adjoint() * P_U.adjoint();
-  rD = P_D * VD_L * rD_temp * VD_R.adjoint() * P_D.adjoint();
+Eigen::Matrix3cd createCkmMatrix(double lambda, double A, double rhobar, double etabar)
+{
+  double s12 = lambda;
+  double s23 = A * lambda * lambda;
+  double c12 = sqrt(1. - s12 * s12);
+  double c23 = sqrt(1. - s23 * s23);
+  double preFactor =
+      (A * pow(lambda, 3) * sqrt(1. - A * A * pow(lambda, 4))) /
+      ((1. - lambda * lambda) *
+       (1. - 2. * A * A * pow(lambda, 4) * rhobar +
+        pow(A, 4) * pow(lambda, 8) * (pow(rhobar, 2) + pow(etabar, 2))));
+  const std::complex<double> s13eid = std::complex<double>(
+      preFactor *
+          (rhobar - A * A * pow(lambda, 4) * (pow(rhobar, 2) + pow(etabar, 2))),
+      preFactor * etabar);
+  double c13 = std::sqrt(std::abs(1. - std::abs(s13eid) * std::abs(s13eid)));
+
+  Eigen::Matrix3cd CKM;
+  CKM.setZero();
+  CKM(0, 0) = std::complex<double>(c12 * c13, 0.);
+  CKM(0, 1) = std::complex<double>(s12 * c13, 0.);
+  CKM(0, 2) = conj(s13eid);
+  CKM(1, 0) = std::complex<double>(-s12 * c23 - c12 * s23 * real(s13eid),
+                                         -c12 * s23 * imag(s13eid));
+  CKM(1, 1) = std::complex<double>(c12 * c23 - s12 * s23 * real(s13eid),
+                                         -s12 * s23 * imag(s13eid));
+  CKM(1, 2) = std::complex<double>(s23 * c13, 0.);
+  CKM(2, 0) = std::complex<double>(s12 * s23 - c12 * c23 * real(s13eid),
+                                         -c12 * c23 * imag(s13eid));
+  CKM(2, 1) = std::complex<double>(-c12 * s23 - s12 * c23 * real(s13eid),
+                                         -s12 * c23 * imag(s13eid));
+  CKM(2, 2) = std::complex<double>(c23 * c13, 0.);
+  return CKM;
 }
 
 Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>
@@ -655,465 +762,6 @@ void Table::drawLine(int length, const std::string &lineChar) const
   std::cout << std::endl;
 }
 
-//------------------------------------------------------------------------------
-
-// void print_evolution_data(FileSystem &fileSystem, const THDM &thdm,
-//                           const std::string modelName)
-// {
-//   std::string file = "parameterPoints_" + modelName + ".dat";
-
-//   if (!fileSystem.open_file(file, true))
-//     return;
-
-//   RgeResults rgeResults = thdm.get_rgeResults();
-
-//   // Calculating minimum energy where pert, unit or stab is violated
-//   double efViolation = rgeResults.ef;
-//   if (rgeResults.ef_pert < efViolation && rgeResults.ef_pert != -1)
-//     efViolation = rgeResults.ef_pert;
-//   if (rgeResults.ef_unit < efViolation && rgeResults.ef_unit != -1)
-//     efViolation = rgeResults.ef_unit;
-//   if (rgeResults.ef_stab < efViolation && rgeResults.ef_stab != -1)
-//     efViolation = rgeResults.ef_stab;
-
-//   fileSystem.add_line(file,
-//                       std::vector<double>{rgeResults.ef, rgeResults.ef_pert,
-//                                           rgeResults.ef_unit,
-//                                           rgeResults.ef_stab, efViolation});
-// }
-
-// void print_misc_data(FileSystem &fileSystem, const THDM &thdm,
-//                      const std::string modelName)
-// {
-//   std::string file = "parameterPoints_misc_" + modelName + ".dat";
-
-//   if (!fileSystem.open_file(file, true))
-//     return;
-
-//   double lamD23 = thdm.get_lamF_element(DOWN, 1, 2);
-
-//   auto maxYuk = thdm.get_largest_nonDiagonal_rF();
-//   auto maxYuk_chengSher = thdm.get_largest_nonDiagonal_lamF();
-//   auto maxLam = thdm.get_largest_lambda();
-//   std::complex<double> z2Quantity = thdm.get_z2_breaking_quantity();
-
-//   fileSystem.add_line(
-//       file,
-//       std::vector<std::string>{
-//           stringAuto(thdm.get_renormalization_scale()),
-//           stringAuto(abs(z2Quantity)), stringAuto(real(z2Quantity)),
-//           stringAuto(imag(z2Quantity)), std::get<0>(maxYuk),
-//           stringAuto(abs(std::get<3>(maxYuk))),
-//           std::get<0>(maxYuk_chengSher),
-//           stringAuto(abs(std::get<3>(maxYuk_chengSher))),
-//           std::get<0>(maxLam), stringAuto(std::get<2>(maxLam)),
-//           stringAuto(lamD23)});
-// }
-
-// void print_generic_basis(FileSystem &fileSystem, const THDM &thdm,
-//                          const std::string modelName)
-// {
-//   std::string file = "parameterPoints_generic_" + modelName + ".dat";
-//   Base_generic gen = thdm.get_param_gen();
-
-//   if (!fileSystem.open_file(file, true))
-//     return;
-
-//   fileSystem.add_line(file, gen.convert_to_vector());
-// }
-
-// void print_physical_data_files(FileSystem &fileSystem, const THDM &thdm,
-//                                const std::string modelName)
-// {
-//   // std::vector<double> masses = thdm.get_higgs_treeLvl_masses();
-
-//   if (!fileSystem.open_file("parameterPoints_higgs_" + modelName + ".dat",
-//                             true) ||
-//       !fileSystem.open_file("parameterPoints_invariant_" + modelName +
-//       ".dat",
-//                             true) ||
-//       !fileSystem.open_file("parameterPoints_physical_" + modelName + ".dat",
-//                             true))
-//     return;
-
-//   Base_higgs higgs = thdm.get_param_higgs();
-//   Base_invariant inv = thdm.get_param_invariant();
-
-//   fileSystem.add_line("parameterPoints_higgs_" + modelName + ".dat",
-//                       higgs.convert_to_vector());
-//   fileSystem.add_line("parameterPoints_invariant_" + modelName + ".dat",
-//                       inv.convert_to_vector());
-
-//   // Calculate the physical parameters mA, mh, mH, cba and sba
-//   double v2 = thdm.get_v2();
-//   double mA =
-//       std::sqrt(inv.mHc * inv.mHc + 0.5 * (higgs.Z4 - real(higgs.Z5)) * v2);
-
-//   double mh = std::sqrt(
-//       0.5 * (mA * mA + (higgs.Z1 + real(higgs.Z5)) * v2 -
-//              std::sqrt((mA * mA + (real(higgs.Z5) - higgs.Z1) * v2) *
-//                            (mA * mA + (real(higgs.Z5) - higgs.Z1) * v2) +
-//                        4. * real(higgs.Z6) * real(higgs.Z6) * v2 * v2)));
-
-//   double mH = std::sqrt(
-//       0.5 * (mA * mA + (higgs.Z1 + real(higgs.Z5)) * v2 +
-//              std::sqrt((mA * mA + (real(higgs.Z5) - higgs.Z1) * v2) *
-//                            (mA * mA + (real(higgs.Z5) - higgs.Z1) * v2) +
-//                        4. * real(higgs.Z6) * real(higgs.Z6) * v2 * v2)));
-
-//   double cba = -real(higgs.Z6) * v2 /
-//                std::sqrt((mH * mH - mh * mh) * (mH * mH - higgs.Z1 * v2));
-
-//   double sba = std::abs(higgs.Z6) * v2 /
-//                std::sqrt((mH * mH - mh * mh) * (higgs.Z1 * v2 - mh * mh));
-
-//   fileSystem.add_line("parameterPoints_physical_" + modelName + ".dat",
-//                       std::vector<double>{mh, mH, mA, cba, sba, sqrt(v2)});
-// }
-
-// void printToFiles(THDM &thdm, const std::string &outputDir,
-//                   const std::string modelName)
-// {
-//   static FileSystem fileSystem("output/" + outputDir);
-//   static std::vector<std::string> initializedModelFiles;
-
-//   // First checks to see if the data files have been created
-//   bool modelIsInitialized = false;
-//   for (auto &models : initializedModelFiles)
-//   {
-//     if (models == modelName)
-//     {
-//       modelIsInitialized = true;
-//       break;
-//     }
-//   }
-//   if (!modelIsInitialized)
-//   {
-//     fileSystem.create_file("parameterPoints_" + modelName + ".dat");
-//     fileSystem.create_file("parameterPoints_misc_" + modelName + ".dat");
-//     fileSystem.create_file("parameterPoints_generic_" + modelName + ".dat");
-//     fileSystem.create_file("parameterPoints_higgs_" + modelName + ".dat");
-//     fileSystem.create_file("parameterPoints_invariant_" + modelName +
-//     ".dat"); fileSystem.create_file("parameterPoints_physical_" + modelName +
-//     ".dat"); initializedModelFiles.push_back(modelName);
-//   }
-
-//   print_evolution_data(fileSystem, thdm, modelName);
-//   print_misc_data(fileSystem, thdm, modelName);
-//   print_generic_basis(fileSystem, thdm, modelName);
-//   print_physical_data_files(fileSystem, thdm, modelName);
-
-//   fileSystem.close_streams();
-// }
-
 //-----------------------------------------------------------------------------
-
-void export_to_csv(THDM &thdm, const std::string &outputDir,
-                   const std::string modelName)
-{
-  static FileSystem fileSystem("output/" + outputDir);
-  static std::vector<std::string> initializedModelFiles;
-
-  // First checks to see if the data files have been created
-  bool modelIsInitialized = false;
-  for (auto &models : initializedModelFiles)
-  {
-    if (models == modelName)
-    {
-      modelIsInitialized = true;
-      break;
-    }
-  }
-  if (!modelIsInitialized)
-  {
-    fileSystem.create_file("thdm_" + modelName + ".csv");
-    fileSystem.close_streams();
-    initializedModelFiles.push_back(modelName);
-    add_header_to_csv(fileSystem, modelName);
-  }
-
-  add_to_csv(fileSystem, thdm, modelName);
-
-  fileSystem.close_streams();
-}
-
-void add_header_to_csv(FileSystem &fileSystem,
-                       const std::string modelName)
-{
-  std::string file = "thdm_" + modelName + ".csv";
-
-  if (!fileSystem.open_file(file, true))
-  {
-    std::cout << "[ERROR]: Couldn't open file when adding header to csv file.\n";
-    return;
-  }
-
-  std::vector<std::string> line;
-  // All values are added to "line".
-  // These values are sperated by \t in the file.
-  line.push_back("ef");                   // 0
-  line.push_back("ef_pert");              // 1
-  line.push_back("ef_unit");              // 2
-  line.push_back("ef_stab");              // 3
-  line.push_back("efViolation");          // 4
-  line.push_back("mu2");                  // 5
-  line.push_back("z2Quantity");           // 6
-  line.push_back("rez2Quantity");         // 7
-  line.push_back("imz2Quantity");         // 8
-  line.push_back("maxYuk");               // 9
-  line.push_back("maxYuk_val");           // 10
-  line.push_back("maxYuk_chengSher");     // 11
-  line.push_back("maxYuk_chengSher_val"); // 12
-  line.push_back("maxLam");               // 13
-  line.push_back("maxLam_val");           // 14
-  line.push_back("lamD23");               // 15
-  line.push_back("xi");                   // 16
-  line.push_back("beta");                 // 17
-  line.push_back("tanb");                 // 18
-  line.push_back("M112");                 // 19
-  line.push_back("M222");                 // 20
-  line.push_back("reM12");                // 21
-  line.push_back("imM12");                // 22
-  line.push_back("Lambda1");              // 23
-  line.push_back("Lambda2");              // 24
-  line.push_back("Lambda3");              // 25
-  line.push_back("Lambda4");              // 26
-  line.push_back("reLambda5");            // 27
-  line.push_back("imLambda5");            // 28
-  line.push_back("reLambda6");            // 29
-  line.push_back("imLambda6");            // 30
-  line.push_back("reLambda7");            // 31
-  line.push_back("imLambda7");            // 32
-  line.push_back("xi");                   // 33
-  line.push_back("beta");                 // 34
-  line.push_back("tanb");                 // 35
-  line.push_back("Y1");                   // 36
-  line.push_back("Y2");                   // 37
-  line.push_back("reY3");                 // 38
-  line.push_back("imY3");                 // 39
-  line.push_back("Z1");                   // 40
-  line.push_back("Z2");                   // 41
-  line.push_back("Z3");                   // 42
-  line.push_back("Z4");                   // 43
-  line.push_back("reZ5");                 // 44
-  line.push_back("imZ5");                 // 45
-  line.push_back("reZ6");                 // 46
-  line.push_back("imZ6");                 // 47
-  line.push_back("reZ7");                 // 48
-  line.push_back("imZ7");                 // 49
-  line.push_back("xi");                   // 50
-  line.push_back("beta");                 // 51
-  line.push_back("tanb");                 // 52
-  line.push_back("cPhi");                 // 53
-  line.push_back("mHc");                  // 54
-  line.push_back("mh_1");                 // 55
-  line.push_back("mh_2");                 // 56
-  line.push_back("mh_3");                 // 57
-  line.push_back("s12");                  // 58
-  line.push_back("c13");                  // 59
-  line.push_back("Z2_inv");               // 60
-  line.push_back("Z3_inv");               // 61
-  line.push_back("theta23");              // 62
-  line.push_back("reZ7inv");              // 63
-  line.push_back("imZ7inv");              // 64
-  line.push_back("v2");                   // 65
-  line.push_back("mh");                   // 66
-  line.push_back("mH");                   // 67
-  line.push_back("mA");                   // 68
-  line.push_back("cba");                  // 69
-  line.push_back("sba");                  // 70
-  line.push_back("S");                    // 71
-  line.push_back("T");                    // 72
-  line.push_back("U");                    // 73
-  line.push_back("de_gh_1");              // 74
-  line.push_back("de_Zh_1");              // 75
-  line.push_back("de_Wh_1");              // 76
-  line.push_back("de_gh_2");              // 77
-  line.push_back("de_Zh_2");              // 78
-  line.push_back("de_Wh_2");              // 79
-  line.push_back("de_gh_3");              // 80
-  line.push_back("de_Zh_3");              // 81
-  line.push_back("de_Wh_3");              // 82
-  line.push_back("de_tot");               // 83
-  // Fermion-Neutral higgs couplings
-  // There are 6*3*3*3=18*9=162 couplings
-  std::string upFlavor = "uct";
-  std::string dnFlavor = "dsb";
-  std::string lFlavor = "emT";
-  std::vector<std::string> higgses = {"h_1", "h_2", "h_3"};
-  for (auto &higgs : higgses)
-  {
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-      {
-        line.push_back(higgs + upFlavor[i] + upFlavor[j]);
-      }
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-      {
-        std::string name(higgs + upFlavor[i] + upFlavor[j]);
-        line.push_back(name + "_axial");
-      }
-
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-      {
-        line.push_back(higgs + dnFlavor[i] + dnFlavor[j]);
-      }
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-      {
-        std::string name(higgs + dnFlavor[i] + dnFlavor[j]);
-        line.push_back(name + "_axial");
-      }
-
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-      {
-        line.push_back(higgs + lFlavor[i] + lFlavor[j]);
-      }
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-      {
-        std::string name(higgs + lFlavor[i] + lFlavor[j]);
-        line.push_back(name + "_axial");
-      }
-  }
-  // 83+162 = 245
-
-  // Rotation matrix
-  for (int i = 1; i <= 3; ++i)
-    for (int j = 1; j <= 3; ++j)
-    {
-      line.push_back("R" + std::to_string(i) + std::to_string(j));
-    }
-
-  fileSystem.add_line(file, line);
-}
-
-void add_to_csv(FileSystem &fileSystem, const THDM &thdm,
-                const std::string modelName)
-{
-  std::string file = "thdm_" + modelName + ".csv";
-
-  if (!fileSystem.open_file(file, true))
-    return;
-
-  std::vector<std::string> line;
-  // All values are added to "line".
-  // These values are sperated by \t in the file.
-  // The different columns are written in add_header_to_csv.
-
-  RgeResults rgeResults = thdm.get_rgeResults();
-
-  // Calculating minimum energy where pert, unit or stab is violated
-  double efViolation = rgeResults.ef;
-  if (rgeResults.ef_pert < efViolation && rgeResults.ef_pert != -1)
-    efViolation = rgeResults.ef_pert;
-  if (rgeResults.ef_unit < efViolation && rgeResults.ef_unit != -1)
-    efViolation = rgeResults.ef_unit;
-  if (rgeResults.ef_stab < efViolation && rgeResults.ef_stab != -1)
-    efViolation = rgeResults.ef_stab;
-
-  line.push_back(stringAuto(rgeResults.ef));
-  line.push_back(stringAuto(rgeResults.ef_pert));
-  line.push_back(stringAuto(rgeResults.ef_unit));
-  line.push_back(stringAuto(rgeResults.ef_stab));
-  line.push_back(stringAuto(efViolation));
-
-  double lamD23 = thdm.get_lamF_element(DOWN, 1, 2);
-
-  auto maxYuk = thdm.get_largest_nonDiagonal_rF();
-  auto maxYuk_chengSher = thdm.get_largest_nonDiagonal_lamF();
-  auto maxLam = thdm.get_largest_lambda();
-  std::complex<double> z2Quantity = thdm.get_z2_breaking_quantity();
-
-  line.push_back(stringAuto(thdm.get_renormalization_scale()));
-  line.push_back(stringAuto(abs(z2Quantity)));
-  line.push_back(stringAuto(real(z2Quantity)));
-  line.push_back(stringAuto(imag(z2Quantity)));
-  line.push_back(std::get<0>(maxYuk));
-  line.push_back(stringAuto(abs(std::get<3>(maxYuk))));
-  line.push_back(std::get<0>(maxYuk_chengSher));
-  line.push_back(stringAuto(abs(std::get<3>(maxYuk_chengSher))));
-  line.push_back(std::get<0>(maxLam));
-  line.push_back(stringAuto(std::get<2>(maxLam)));
-  line.push_back(stringAuto(lamD23));
-
-  // Different basis
-  Base_generic gen = thdm.get_param_gen();
-  Base_higgs higgs = thdm.get_param_higgs();
-  Base_invariant inv = thdm.get_param_invariant();
-
-  auto genVec = convertToStringVec(gen.convert_to_vector());
-  auto higgsVec = convertToStringVec(higgs.convert_to_vector());
-  auto invVec = convertToStringVec(inv.convert_to_vector());
-
-  line.insert(line.end(), genVec.begin(), genVec.end());
-  line.insert(line.end(), higgsVec.begin(), higgsVec.end());
-  line.insert(line.end(), invVec.begin(), invVec.end());
-
-  // Calculate the physical parameters mA, mh, mH, cba and sba
-  double v2 = thdm.get_v2();
-  double mA =
-      std::sqrt(inv.mHc * inv.mHc + 0.5 * (higgs.Z4 - real(higgs.Z5)) * v2);
-
-  double mh = std::sqrt(
-      0.5 * (mA * mA + (higgs.Z1 + real(higgs.Z5)) * v2 -
-             std::sqrt((mA * mA + (real(higgs.Z5) - higgs.Z1) * v2) *
-                           (mA * mA + (real(higgs.Z5) - higgs.Z1) * v2) +
-                       4. * real(higgs.Z6) * real(higgs.Z6) * v2 * v2)));
-
-  double mH = std::sqrt(
-      0.5 * (mA * mA + (higgs.Z1 + real(higgs.Z5)) * v2 +
-             std::sqrt((mA * mA + (real(higgs.Z5) - higgs.Z1) * v2) *
-                           (mA * mA + (real(higgs.Z5) - higgs.Z1) * v2) +
-                       4. * real(higgs.Z6) * real(higgs.Z6) * v2 * v2)));
-
-  double cba = -real(higgs.Z6) * v2 /
-               std::sqrt((mH * mH - mh * mh) * (mH * mH - higgs.Z1 * v2));
-
-  double sba = std::abs(higgs.Z6) * v2 /
-               std::sqrt((mH * mH - mh * mh) * (higgs.Z1 * v2 - mh * mh));
-
-  line.push_back(stringAuto(v2));
-  line.push_back(stringAuto(mh));
-  line.push_back(stringAuto(mH));
-  line.push_back(stringAuto(mA));
-  line.push_back(stringAuto(cba));
-  line.push_back(stringAuto(sba));
-
-  std::vector<double> oblique = thdm.get_oblique();
-  line.push_back(stringAuto(oblique[0]));
-  line.push_back(stringAuto(oblique[1]));
-  line.push_back(stringAuto(oblique[2]));
-
-  // Electric dipole moment
-  EDM edm(thdm);
-  std::vector<std::string> de = convertToStringVec(edm.get_de());
-
-  line.insert(line.end(), de.begin(), de.end());
-
-  // Fermion-Neutral Higgs couplings
-  auto couplings = thdm.get_fermion_couplings();
-
-  for (auto &matrix : couplings)
-  {
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-      {
-        line.push_back(stringAuto(matrix(i, j)));
-      }
-  }
-
-  auto R = get_rotation_matrix(thdm.get_v2(), thdm.get_param_higgs());
-  for (int i = 0; i < 3; ++i)
-    for (int j = 0; j < 3; ++j)
-    {
-      line.push_back(stringAuto(R(i, j)));
-    }
-
-  fileSystem.add_line(file, line);
-}
 
 } // namespace THDME

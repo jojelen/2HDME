@@ -1,4 +1,4 @@
-# 2 Higgs Doublet Model Evolver
+# 2 Higgs Doublet Model Evolver version 1.2
 
 2 Higgs Doublet Model Evolver (**2HDME**) is a C++ program that can evolve a
 general 2HDM in renormalization energy scale, by solving the 1- or 2-loop
@@ -87,25 +87,6 @@ in the terminal.  If the **GNUPLOT** functionality hasn't been disabled (by
 commenting out lines in the Makefile), plots of the parameters should have been
 created in *output/DemoRGE/plots*.
 
-### SPheno linkage
-
-To enable **SPheno**, one must have a working installation of **SPheno**
-[spheno.hepforge.org] in the folder of **2HDME**. The folders name is by default
-*SPheno-4.0.3*, but can be changed by modifying *SPHENO_PATH* in
-*src/SPheno.cpp*. 
-
-Next up, the model files for 2HDM must be compiled with your **SPheno**. The
-needed model files have been created with **SARAH** [sarah.hepforge.org] and are
-included in *SPhenoModelFiles/THDM_GEN*. Copy *THDM_GEN* to the **SPheno**
-directory and run *make* to compile it.
-
-When **SPheno** and the 2HDM model files have been compiled, the SPheno
-functionality in **2HDME** can be enabled by removing the relevant comments in
-the *Makefile*.
-
-See *DemoRGE* for an example of how to compute loop corrected masses with
-**SPheno**. 
-
 
 ********************************************************************************
 
@@ -113,8 +94,6 @@ See *DemoRGE* for an example of how to compute loop corrected masses with
 
 Directories:
 
-* *SPhenoModelFiles*: Contains output from **SARAH** that should be used if one
-wants to link SPheno.
 * *src*: Source code
 * *src/demos*: Short demo applications that use 2HDME.
 * *src/RGEs*: Header files that contain the RGEs for 2HDM and SM in separate 
@@ -123,16 +102,20 @@ files.
 Files in *src*:
 * *BaseModel* (.h and .cpp): Abstract base class that RgeModel inherits from.
 * *FileSystem* (.h and .cpp): Class that handles I/O to files.
+* *Globals* (.h and .cpp): Collection of constant global variables.
 * *GnuPlotSystem* (.h and .cpp): Class that can create gnuplot scripts and execute
 commands that exports postscript plots.
 * *HelpFunctions* (.h and .cpp): Miscellaneous structs and functions. Contains a 
 class that is used to print tables to the console.
 * *LoggingSystem* (.h and .cpp): Class that I/O to console for BaseModel
 classes.
+* *NewModel* (.h and .cpp): Example of a new model that can be modified.
+* *Oblique* (.h and .cpp): Class for calculating oblique parameters for THDM.
 * *RGE* (.h and .cpp): Functions that calculate the RGEs that are contained in 
 *src/RGEs*.
 * *RgeModel* (.h and .cpp): Class that handles the RG evolution functionality for
 derived classes. Inherits from BaseModel.
+* *SLHA* (.h and .cpp): Class for I/O to SLHA-like text files.
 * *SM* (.h and .cpp): Class for standard model. Inherits from RgeModel.
 * *SPheno* (.h and .cpp): Class that acts as a wrapper to SPheno.
 * *Structures* (.h and .cpp): Miscellaneous structs.

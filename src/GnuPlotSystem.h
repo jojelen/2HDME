@@ -22,38 +22,35 @@
 
 #include <string>
 
-namespace THDME
-{
-class GnuPlotSystem
-{
-public:
-  GnuPlotSystem(const std::string &outputDirectory);
-  ~GnuPlotSystem();
+namespace THDME {
+class GnuPlotSystem {
+   public:
+    GnuPlotSystem(const std::string &outputDirectory);
+    ~GnuPlotSystem();
 
-  void set_z2_symmetry(const Z2symmetry &sym);
+    void set_z2_symmetry(const Z2symmetry &sym);
 
-  void create_pdf_plots(const RgeConfig &rgeConfig,
-                        const RgeResults &rgeResults);
+    void create_pdf_plots(const RgeConfig &rgeConfig,
+                          const RgeResults &rgeResults);
 
-private:
-  std::string _outputDir;
-  Z2symmetry _z2Symmetry;
+   private:
+    std::string _outputDir;
+    Z2symmetry _z2Symmetry;
 
-  // Common options used for many plots
-  std::string _loopOrder, _setBorder, _xRange, _lastTic, _lineWidth;
+    // Common options used for many plots
+    std::string _loopOrder, _setBorder, _xRange, _lastTic, _lineWidth;
 
-  void export_pdf();
+    void export_pdf();
 
-  void create_common_options(const RgeConfig &rgeConfig,
-                             const RgeResults &rgeResults);
-  void create_lambda_script() const;
-  void create_Z_script() const;
-  void create_angles_script() const;
-  void create_higgs_masses_script() const;
-  void create_Mij_script() const;
-  void create_vev_script() const;
-  void create_yukawa_script() const;
+    void create_common_options(const RgeConfig &rgeConfig,
+                               const RgeResults &rgeResults);
+    void create_lambda_script() const;
+    void create_Z_script() const;
+    void create_angles_script() const;
+    void create_higgs_masses_script() const;
+    void create_Mij_script() const;
+    void create_vev_script() const;
 
-  void create_export_script() const;
+    void create_export_script() const;
 };
-} // namespace THDME
+}  // namespace THDME

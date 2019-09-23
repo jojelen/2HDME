@@ -11,96 +11,110 @@
  * mass scale and running it up to the Planck scale.
  *
  *============================================================================*/
+#include "EDM.h"
+#include "HelpFunctions.h"
 #include "SM.h"
 #include "THDM.h"
-#include "HelpFunctions.h"
 
 #include <complex>
 #include <iostream>
 
 using namespace THDME;
+using namespace std;
 
-int main(int argc, char *argv[])
-{
-  Timer timer;
+int main(int argc, char *argv[]) {
+    Timer timer;
 
-  // The Standard Model is by default constructed with its parameters defined at
-  // the top mass scale.
-  SM sm;
-  sm.print_all();
+    // The Standard Model is by default constructed with its parameters defined
+    // at
+    // the top mass scale.
+    SM sm;
+    sm.print_all();
 
-  // The sm object is used to set the boundary condition for a THDM object.
-  // The THDM will be defined at the same renormalization scale and with the
-  // same fermion masses, gauge coupling, CKM matrix as the given sm.
-  THDM thdm(sm);
+    // The sm object is used to set the boundary condition for a THDM object.
+    // The THDM will be defined at the same renormalization scale and with the
+    // same fermion masses, gauge coupling, CKM matrix as the given sm.
+    THDM thdm(sm);
 
-  // The potential of the THDM can be set with any of the bases specified in
-  // THDM_bases. Here we specify a Z2 symmetric CP conserving generic basis.
-  Base_generic gen;
+    // The potential of the THDM can be set with any of the bases specified in
+    // THDM_bases. Here we specify a Z2 symmetric CP conserving generic basis.
+    Base_generic gen;
 
-  gen.beta =  1.18997; // tanb =  2.49772
-  gen.M12 = std::complex<double> ( 72993.4, 0.);
-  gen.Lambda1 =  0.467183;
-  gen.Lambda2 =  0.394626;
-  gen.Lambda3 =  -0.165783;
-  gen.Lambda4 =  0.159849;
-  gen.Lambda5 = std::complex<double>( -0.245042, 0.);
-  gen.Lambda6 = std::complex<double>(0., 0.);
-  gen.Lambda7 = std::complex<double>(0., 0.);
+    gen.beta = 1.46713;
+    gen.M12 = std::complex<double>(3132.85, 0.);
+    gen.Lambda1 = 0.413702;
+    gen.Lambda2 = 0.263926;
+    gen.Lambda3 = 0.13313;
+    gen.Lambda4 = -0.0444794;
+    gen.Lambda5 = std::complex<double>(0.29586, 0.);
+    gen.Lambda6 = std::complex<double>(0., 0.);
+    gen.Lambda7 = std::complex<double>(0., 0.);
 
-  thdm.set_param_gen(gen);
+    thdm.set_param_gen(gen);
 
-  // The Yukawa sector is set to be type-I symmetric. A potential needs to be
-  // set before this, since tanb must be specified.
-  thdm.set_yukawa_type(TYPE_I);
+    // The Yukawa sector is set to be type-I symmetric. A potential needs to be
+    // set before this, since tanb must be specified.
+    thdm.set_yukawa_type(TYPE_I);
 
-  thdm.print_all();
+    // For an aligned (CP violating) yukawa sector, use this:
+    // complex<double> aU(0.,1./tan(gen.beta));
+    // complex<double> aD = 1./tan(gen.beta);
+    // complex<double> aL = 1./tan(gen.beta);
+    // thdm.set_yukawa_aligned(aU,aD,aL);
 
-  // One can also write a SLHA file of the THDM and SM
-  sm.write_slha_file();
-  thdm.write_slha_file("DemoRGE_SLHA");
+    thdm.print_all();
+    printFancyBasesTable(thdm.get_param_gen(), sm.get_v2());
 
-  // The options for evolving a THDM object can configured by specifying a
-  // RgeConfig struct:
-  RgeConfig options;
-  options.dataOutput = true;         // Writes parameters to file in each RGE step.
-  options.consoleOutput = true;      // Writes info to console
-  options.evolutionName = "DemoRGE"; // Output directory
-  options.twoloop = true;            // Uses 2-loop RGEs
-  options.perturbativity = true;     // Stops at perturbativity violation
-  options.stability = false;         // Continues at stability violation
-  options.unitarity = false;         // Continues at unitarity violation
-  options.finalEnergyScale = 1e18;
-  options.steps = 100; // Number of steps in evolution where checks are being
-                       // made and parameters are saved to files.
+    EDM edm(thdm);
+    edm.print_edm();
 
-  options.print(); // Prints the options to the console
+    // One can also write a SLHA file of the THDM and SM
+    sm.write_slha_file();
+    int sphenoLoopOrder =
+        0;  // Loop order for mass calculations if SPheno is used
+    thdm.write_slha_file(sphenoLoopOrder, "DemoRGE_SLHA");
 
-  thdm.set_rgeConfig(options);
+    // The options for evolving a THDM object can configured by specifying a
+    // RgeConfig struct:
+    RgeConfig options;
+    options.dataOutput = true;  // Writes parameters to file in each RGE step.
+    options.consoleOutput = true;       // Writes info to console
+    options.evolutionName = "DemoRGE";  // Output directory
+    options.twoloop = true;             // Uses 2-loop RGEs
+    options.perturbativity = true;      // Stops at perturbativity violation
+    options.stability = false;          // Continues at stability violation
+    options.unitarity = false;          // Continues at unitarity violation
+    options.finalEnergyScale = 1e18;
+    options.steps = 100;  // Number of steps in evolution where checks are being
+                          // made and parameters are saved to files.
 
-  thdm.evolve();
+    options.print();  // Prints the options to the console
 
-  std::cout << "Parameters after evolution: \n";
-  thdm.print_all();
+    thdm.set_rgeConfig(options);
 
-  // There are plenty of parameters one can get from the thdm. See THDM.h for
-  // a complete list of the implemented ones.
-  // For example, to retrieve the potential parameters one can use
-  Base_generic genFinal = thdm.get_param_gen();
+    thdm.evolve();
 
-  std::cout << "THDM API example:\n";
-  std::cout << "\nLambda1 increased by "
-            << std::abs(100 * genFinal.Lambda1 / gen.Lambda1) << " %\n";
+    std::cout << "Parameters after evolution: \n";
+    thdm.print_all();
 
-  // We can save the evolved model in another file
-  thdm.write_slha_file("DemoRGE_evolvedThdm");
-  
-  // To evolve downwards in energy, all one have to do is to change the 
-  // finalEnergyScale of RgeConfig.
-  options.finalEnergyScale = 1e3;
-  options.dataOutput = false; // To prevent overwriting the first plots.
-  thdm.set_rgeConfig( options);
-  thdm.evolve();
+    // There are plenty of parameters one can get from the thdm. See THDM.h for
+    // a complete list of the implemented ones.
+    // For example, to retrieve the potential parameters one can use
+    Base_generic genFinal = thdm.get_param_gen();
 
-  std::cout << "\nDemoRGE complete!\n\n";
+    std::cout << "THDM API example:\n";
+    std::cout << "\nLambda1 increased by "
+              << std::abs(100 * genFinal.Lambda1 / gen.Lambda1) << " %\n";
+
+    // We can save the evolved model in another file
+    thdm.write_slha_file(sphenoLoopOrder, "DemoRGE_evolvedThdm");
+
+    // To evolve downwards in energy, all one have to do is to change the
+    // finalEnergyScale of RgeConfig.
+    options.finalEnergyScale = 1e3;
+    options.dataOutput = false;  // To prevent overwriting the first plots.
+    thdm.set_rgeConfig(options);
+    thdm.evolve();
+
+    std::cout << "\nDemoRGE complete!\n\n";
 }

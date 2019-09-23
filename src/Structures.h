@@ -9,10 +9,10 @@
 
 #include "THDM_bases.h"
 
+#include <gsl/gsl_rng.h>
 #include <Eigen/Dense>
 #include <complex>
 #include <fstream>
-#include <gsl/gsl_rng.h>
 #include <iostream>
 #include <mutex>
 #include <string>
@@ -26,22 +26,22 @@ namespace THDME {
  * The Results of the RGE evolution is saved in a RgeResults struct.
  */
 struct RgeConfig {
-  bool twoloop; // set to true to use two-loop RGEs
+    bool twoloop;  // set to true to use two-loop RGEs
 
-  bool perturbativity; // if these = true, enforces
-  bool stability;      // that the RGE evolution breaks when violating them.
-  bool unitarity;
+    bool perturbativity;  // if these = true, enforces
+    bool stability;       // that the RGE evolution breaks when violating them.
+    bool unitarity;
 
-  bool consoleOutput;        // If false, hides output to console
-  bool dataOutput;           // prints evolution data to files
-  std::string evolutionName; // data is printed to "output/evolutionName"
-  double finalEnergyScale;   // Final energy scale for RG evolution.
-  int steps;                 // steps for RGE evolution (distributed
-                             // logarithmically)
+    bool consoleOutput;         // If false, hides output to console
+    bool dataOutput;            // prints evolution data to files
+    std::string evolutionName;  // data is printed to "output/evolutionName"
+    double finalEnergyScale;    // Final energy scale for RG evolution.
+    int steps;                  // steps for RGE evolution (distributed
+                                // logarithmically)
 
-  RgeConfig();
+    RgeConfig();
 
-  void print() const;
+    void print() const;
 };
 
 //------------------------------------------------------------------------------
@@ -53,60 +53,62 @@ struct RgeConfig {
  * RG evolution.
  **/
 struct RgeResults {
-  // Start and finish energy for RGE evolution
-  double e0, ef;
+    // Start and finish energy for RGE evolution
+    double e0, ef;
 
-  // The breakdown energy for perturbativity etc.
-  // They are initialized to -1 to mark that they have not been violated.
-  double ef_pert;
-  double ef_unit;
-  double ef_stab;
+    // The breakdown energy for perturbativity etc.
+    // They are initialized to -1 to mark that they have not been violated.
+    double ef_pert;
+    double ef_unit;
+    double ef_stab;
 
-  bool evolved; // true if the THDM has been performed RGE_evolve
+    bool evolved;  // true if the THDM has been performed RGE_evolve
 
-  // These are true if the model has
-  // broken them during RGE evolion
-  bool LandauViolation;
-  bool perturbativityViolation;
-  bool unitarityViolation;
-  bool stabilityViolation;
+    // These are true if the model has
+    // broken them during RGE evolion
+    bool LandauViolation;
+    bool perturbativityViolation;
+    bool unitarityViolation;
+    bool stabilityViolation;
 
-  // Constructor
-  RgeResults();
+    // Constructor
+    RgeResults();
 
-  // Copy constructor
-  RgeResults(const RgeResults &rge);
+    // Copy constructor
+    RgeResults(const RgeResults &rge);
 
-  void reset();
+    void reset();
 
-  // Print to console
-  void print(const bool fancyStyle = true) const;
-  // Returns true if there are no violations and evolved=true
-  bool is_okay() const;
+    // Print to console
+    void print(const bool fancyStyle = true) const;
+    // Returns true if there are no violations and evolved=true
+    bool is_okay() const;
 };
 
 /*----------------------------------------------------------------------------*/
 
 // A structure that can be used to set a range for a double parameter.
 struct double_range {
-  bool fixed;
-  double fixedValue;
-  double min, max;
+    bool fixed;
+    double fixedValue;
+    double min, max;
 
-  double_range();
-  double_range(double min_in, double max_in);
-  double_range(double value_in);
+    double_range();
+    double_range(double min_in, double max_in);
+    double_range(double value_in);
 
-  // Returns random value between min and max or the fixedValue if fixed = true
-  double draw_random(const gsl_rng *rng) const;
+    // Returns random value between min and max or the fixedValue if fixed =
+    // true
+    double draw_random(const gsl_rng *rng) const;
 
-  // Overloading the << operator
-  friend std::ofstream &operator<<(std::ofstream &of,
-                                   const double_range &range);
-  // Overloading the << operator
-  friend std::ostream &operator<<(std::ostream &of, const double_range &range);
+    // Overloading the << operator
+    friend std::ofstream &operator<<(std::ofstream &of,
+                                     const double_range &range);
+    // Overloading the << operator
+    friend std::ostream &operator<<(std::ostream &of,
+                                    const double_range &range);
 
-  std::string toString();
+    std::string toString();
 };
 
 //------------------------------------------------------------------------------
@@ -115,15 +117,15 @@ struct double_range {
  * @brief: Collection of parameter ranges for hybrid basis
  */
 struct Range_hybrid {
-  double_range mh, mH, cba, tanb, Z4, Z5, Z7;
-  std::string name;
-  Z2symmetry yukawaType;
+    double_range mh, mH, cba, tanb, Z4, Z5, Z7;
+    std::string name;
+    Z2symmetry yukawaType;
 
-  Range_hybrid();
+    Range_hybrid();
 
-  void print() const;
+    void print() const;
 
-  Base_hybrid get_random_point(const gsl_rng *rng) const;
+    Base_hybrid get_random_point(const gsl_rng *rng) const;
 };
 
-} // namespace THDME
+}  // namespace THDME

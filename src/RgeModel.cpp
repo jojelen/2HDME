@@ -110,6 +110,7 @@ bool RgeModel::evolve()
     }
 
     // Set start and final energies
+    _rgeResults.reset();
     _rgeResults.e0 = _renormScale;
     _rgeResults.ef = _rgeConfig.finalEnergyScale;
     _rgeResults.evolved =

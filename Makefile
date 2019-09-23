@@ -19,17 +19,17 @@
 ################################################################################
 
 # Choose your C++ compiler here (in general g++ on Linux systems):
-CC = g++
+CC=g++
 
 #Optimisation level, eg: -O3
 OPT=-O3
 
 # Paths for source code that needs compiling
-VPATH=src src/demos
+VPATH=src src/demos src/prog
 MKDIR_P = mkdir -p
 OUT_DIR=bin lib
 
-CFLAGS= -pthread -std=c++11 -Wall $(OPT) -Isrc
+CFLAGS= -std=c++11 -Wall $(OPT) -Isrc
 
 OBJDIR=lib
 LIBDIR=$(OBJDIR)
@@ -40,13 +40,11 @@ BINDIR=bin
 # Source code:
 RGESRC=BaseModel.cpp RgeModel.cpp THDM.cpp RGE.cpp \
 HelpFunctions.cpp FileSystem.cpp LoggingSystem.cpp SM.cpp\
-THDM_bases.cpp Structures.cpp Globals.cpp \
-SLHA.cpp Oblique.cpp NewModel.cpp 
-OBJECTS=$(RGESRC:.cpp=.o)
+THDM_bases.cpp Structures.cpp SLHA.cpp Oblique.cpp Globals.cpp\
+EDM.cpp NewModel.cpp
 
 LIB=lib2HDME.a
 LDFLAGS+=-L$(LIBDIR) -l2HDME -lgsl -lgslcblas -lm
-LIBS=
 
 DEMOS=DemoRGE DemoSM DemoNewModel
 PROG=
@@ -55,9 +53,10 @@ PROG=
 CFLAGS+=-DGNUPLOT
 RGESRC+=GnuPlotSystem.cpp
 
-.PHONY: directories lib clean distclean
+OBJECTS=$(RGESRC:.cpp=.o)
+.PHONY: directories clean distclean
 
-all: directories lib $(DEMOS) $(PROG)
+all: directories thdme $(DEMOS) $(PROG)
 
 directories: $(OUT_DIR)
 
@@ -68,15 +67,14 @@ $(OUT_DIR):
 $(OBJDIR)/%.o : %.cpp %.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-lib: $(addprefix $(LIBDIR)/, $(LIB))
+thdme: $(addprefix $(LIBDIR)/, lib2HDME.a)
 
-$(addprefix $(LIBDIR)/, $(LIB)): $(addprefix $(OBJDIR)/, $(OBJECTS))
-	@ echo "Making library $@..."
+$(addprefix $(LIBDIR)/, lib2HDME.a): $(addprefix $(OBJDIR)/, $(OBJECTS))
+	@ echo "Making 2HDME library $@..."
 	@ ar rcs $@ $(addprefix $(OBJDIR)/, $(OBJECTS))  
 
 %: %.cpp $(addprefix $(LIBDIR)/, $(LIB))
-	@ $(CC) $< $(CFLAGS) $(LDFLAGS) $(addprefix $(LIBDIR)/, $(LIBS)) \
-	-o $(addprefix $(BINDIR)/, $@)
+	@ $(CC) $< $(CFLAGS) $(LDFLAGS) -o $(addprefix $(BINDIR)/, $@)
 
 clean:
 	@ echo "Cleaning library"

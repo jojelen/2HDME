@@ -9,7 +9,7 @@
  *
  *============================================================================*/
 #include "SLHA.h"
-#include "HelpFunctions.h" // For date() function
+#include "HelpFunctions.h"  // For date() function
 
 #include <fstream>
 #include <iostream>
@@ -19,46 +19,60 @@
 using namespace std;
 
 std::ostream &operator<<(std::ostream &oS, const SLHA_PARAMETER &parameter) {
-  for (auto &i : parameter.ID)
-    printf(" %i ", i);
-  printf("%16.8e ", parameter.value);
-  printf("# %s\n", parameter.comment.c_str());
-  return oS;
+    for (auto &i : parameter.ID) printf(" %i ", i);
+    printf("%16.8e ", parameter.value);
+    printf("# %s\n", parameter.comment.c_str());
+    return oS;
 }
 
 bool retrieve_SLHA_PARAMETER(SLHA_PARAMETER &parameter,
                              const std::string &line) {
-  // std::cout << "Retrieving parameter from " << line << std::endl; //DEBUG
-  // Creates a vector of words of line, except comment content(after #).
-  string word, comment;
-  vector<string> wordVec;
-  for (std::istringstream iss(line); iss >> word;) {
-    if (word == "#") {
-      while (iss >> word) {
-        comment += word;
-        comment += " ";
-      }
-      comment.pop_back();
-    } else
-      wordVec.push_back(word);
-  }
+    // std::cout << "Retrieving parameter from " << line << std::endl; //DEBUG
+    // Creates a vector of words of line, except comment content(after #).
+    string word, comment;
+    vector<string> wordVec;
+    for (std::istringstream iss(line); iss >> word;) {
+        if (word == "#") {
+            while (iss >> word) {
+                comment += word;
+                comment += " ";
+            }
+            comment.pop_back();
+        } else
+            wordVec.push_back(word);
+    }
 
-  // Each parameter must have at least one ID and one value.
-  if (wordVec.size() < 2)
-    return false;
+    // Each parameter must have at least one ID and only one value.
+    if (wordVec.size() < 2) return false;
 
-  // Setting parameter
-  try {
-    for (auto it = wordVec.begin(); it != wordVec.end() - 1; ++it)
-      parameter.ID.push_back(stoi(*it));
-    parameter.value = std::stod(wordVec.back());
-    parameter.comment = comment;
-  } catch (const std::exception &e) {
-    std::cout << "Exception when setting SLHA param. Message: " << e.what()
-              << std::endl;
-    return false;
-  }
-  return true;
+    // Setting parameter
+    try {
+        for (auto it = wordVec.begin(); it != wordVec.end() - 1; ++it) {
+            std::string::size_type sz;
+            parameter.ID.push_back(stoi(*it, &sz));
+            if ((*it).length() != sz)
+                throw std::runtime_error("stoi converted a double!");
+            ;
+        }
+        parameter.value = std::stod(wordVec.back());
+        parameter.comment = comment;
+    } catch (const std::exception &e) {
+        // Some have a comment before the #, so tries that before returning
+        // false
+        try {
+            parameter.ID.clear();
+            for (auto it = wordVec.begin(); it != wordVec.end() - 2; ++it)
+                parameter.ID.push_back(stoi(*it));
+            parameter.value = std::stod(wordVec[wordVec.size() - 2]);
+            parameter.comment = wordVec.back() + " " + comment;
+        } catch (const std::exception &e) {
+            // std::cout << "Exception when setting SLHA param. Message: " <<
+            // e.what()
+            //           << std::endl;
+            return false;
+        }
+    }
+    return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -67,87 +81,85 @@ SLHA_BLOCK::SLHA_BLOCK(const string &blockName, const string &comment)
     : _name(blockName), _comment(comment) {}
 
 void SLHA_BLOCK::add_parameter(const SLHA_PARAMETER parameter) {
-  _paramVec.push_back(parameter);
+    _paramVec.push_back(parameter);
 }
 
 void SLHA_BLOCK::add_parameter(const int &id, const double &value,
                                const std::string &comment) {
-  SLHA_PARAMETER parameter;
-  parameter.ID.push_back(id);
-  parameter.value = value;
-  parameter.comment = comment;
-  _paramVec.push_back(parameter);
+    SLHA_PARAMETER parameter;
+    parameter.ID.push_back(id);
+    parameter.value = value;
+    parameter.comment = comment;
+    _paramVec.push_back(parameter);
 }
 
 void SLHA_BLOCK::add_parameter(const int &id1, const int &id2,
                                const double &value,
                                const std::string &comment) {
-  SLHA_PARAMETER parameter;
-  parameter.ID.push_back(id1);
-  parameter.ID.push_back(id2);
-  parameter.value = value;
-  parameter.comment = comment;
-  _paramVec.push_back(parameter);
+    SLHA_PARAMETER parameter;
+    parameter.ID.push_back(id1);
+    parameter.ID.push_back(id2);
+    parameter.value = value;
+    parameter.comment = comment;
+    _paramVec.push_back(parameter);
 }
 
 void SLHA_BLOCK::add_parameter(const int &id1, const int &id2, const int &id3,
                                const double &value,
                                const std::string &comment) {
-  SLHA_PARAMETER parameter;
-  parameter.ID.push_back(id1);
-  parameter.ID.push_back(id2);
-  parameter.ID.push_back(id3);
-  parameter.value = value;
-  parameter.comment = comment;
-  _paramVec.push_back(parameter);
+    SLHA_PARAMETER parameter;
+    parameter.ID.push_back(id1);
+    parameter.ID.push_back(id2);
+    parameter.ID.push_back(id3);
+    parameter.value = value;
+    parameter.comment = comment;
+    _paramVec.push_back(parameter);
 }
 
 void SLHA_BLOCK::add_parameter(const std::vector<int> &idVec,
                                const double &value,
                                const std::string &comment) {
-  SLHA_PARAMETER parameter;
-  parameter.ID = idVec;
-  parameter.value = value;
-  parameter.comment = comment;
-  _paramVec.push_back(parameter);
+    SLHA_PARAMETER parameter;
+    parameter.ID = idVec;
+    parameter.value = value;
+    parameter.comment = comment;
+    _paramVec.push_back(parameter);
 }
 
 void SLHA_BLOCK::print() const {
-  printf("Block %s ", _name.c_str());
-  printf("# %s\n", _comment.c_str());
-  for (auto &param : _paramVec) {
-    for (auto &i : param.ID)
-      printf(" %i", i);
-    if (param.value == (int)param.value)
-      printf("   %i", (int)param.value);
-    else
-      printf(" %16.8e", param.value);
-    printf(" # %s\n", param.comment.c_str());
-  }
+    printf("Block %s ", _name.c_str());
+    printf("# %s\n", _comment.c_str());
+    for (auto &param : _paramVec) {
+        for (auto &i : param.ID) printf(" %i", i);
+        if (param.value == (int)param.value)
+            printf("   %i", (int)param.value);
+        else
+            printf(" %16.8e", param.value);
+        printf(" # %s\n", param.comment.c_str());
+    }
 }
 
 void SLHA_BLOCK::print(FILE *output) const {
-  fprintf(output, "Block %s ", _name.c_str());
-  fprintf(output, "# %s\n", _comment.c_str());
-  for (auto &param : _paramVec) {
-    for (auto &i : param.ID)
-      fprintf(output, " %i", i);
-    if (param.value == (int)param.value)
-      fprintf(output, "   %i", (int)param.value);
-    else
-      fprintf(output, " %16.8e", param.value);
-    fprintf(output, " # %s\n", param.comment.c_str());
-  }
+    fprintf(output, "Block %s ", _name.c_str());
+    fprintf(output, "# %s\n", _comment.c_str());
+    for (auto &param : _paramVec) {
+        for (auto &i : param.ID) fprintf(output, " %i", i);
+        if (param.value == (int)param.value)
+            fprintf(output, "   %i", (int)param.value);
+        else
+            fprintf(output, " %16.8e", param.value);
+        fprintf(output, " # %s\n", param.comment.c_str());
+    }
 }
 
 bool SLHA_BLOCK::get_param(const std::vector<int> ID, double &value) const {
-  for (auto &param : _paramVec) {
-    if (ID == param.ID) {
-      value = param.value;
-      return true;
+    for (auto &param : _paramVec) {
+        if (ID == param.ID) {
+            value = param.value;
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 std::string SLHA_BLOCK::get_name() const { return _name; }
@@ -157,138 +169,156 @@ SLHA_FILE::SLHA_FILE(const string &title) : _title(title) {}
 
 SLHA_FILE::~SLHA_FILE() {}
 
+void SLHA_FILE::suppress_errors(const bool suppressErrors) {
+    _suppressErrors = suppressErrors;
+}
+
 bool SLHA_FILE::load_file(const string &fileName) {
-  printf("Loading file: %s\n", fileName.c_str());
+    // printf("Loading file: %s\n", fileName.c_str()); // DEBUG
 
-  std::ifstream slhaFileStream(fileName, std::ios_base::in);
+    std::ifstream slhaFileStream(fileName, std::ios_base::in);
 
-  if (!slhaFileStream) {
-    cout << "[ERROR]: Couldn't open " << fileName << endl;
-    return false;
-  }
-
-  string line, firstWord;
-  while (std::getline(slhaFileStream, line)) {
-    // Retrieving first word
-    std::istringstream iss(line);
-    if (!(iss >> firstWord)) {
-      break;
+    if (!slhaFileStream) {
+        cout << "[ERROR]: Couldn't open " << fileName << endl;
+        return false;
     }
 
-    // If it is the start of a block
-    if (firstWord == "Block") {
-      string blockType;
-      iss >> blockType;
+    string line, firstWord;
+    while (std::getline(slhaFileStream, line)) {
+        // Retrieving first word
+        std::istringstream iss(line);
+        if (!(iss >> firstWord)) {
+            break;
+        }
 
-      // Looking for block comment
-      string blockComment = "";
-      iss >> firstWord;
-      if (firstWord == "#") {
-        while (iss >> firstWord)
-          blockComment += firstWord + " ";
-        if (blockComment.back() == ' ')
-          blockComment.pop_back();
-      }
+        // If it is the start of a block
+        if (firstWord == "Block" || firstWord == "BLOCK") {
+            string blockType;
+            iss >> blockType;
 
-      _blockVec.emplace_back(blockType, blockComment);
-      continue;
-    } else if (firstWord.front() == '#')
-      continue;
+            // Looking for block comment
+            string blockComment = "";
+            iss >> firstWord;
+            if (firstWord == "#") {
+                while (iss >> firstWord) blockComment += firstWord + " ";
+                if (blockComment.back() == ' ') blockComment.pop_back();
+            }
 
-    SLHA_PARAMETER parameter;
-    if (retrieve_SLHA_PARAMETER(parameter, line)) {
-      _blockVec.back().add_parameter(parameter);
+            _blockVec.emplace_back(blockType, blockComment);
+            continue;
+        } else if (firstWord.front() == '#')
+            continue;
+
+        SLHA_PARAMETER parameter;
+        if (retrieve_SLHA_PARAMETER(parameter, line)) {
+            _blockVec.back().add_parameter(parameter);
+        }
     }
-  }
 
-  printf("Loaded SLHA file with %lu blocks!\n", _blockVec.size());
-  return true;
+    // printf("Loaded SLHA file with %lu blocks!\n", _blockVec.size()); // DEBUG
+    return true;
 }
 
 bool SLHA_FILE::save_to_file(const std::string &fileName) const {
-  FILE *output;
-  output = fopen(fileName.c_str(), "w");
+    FILE *output;
+    output = fopen(fileName.c_str(), "w");
 
-  if (output == NULL) {
-    printf("Cannot open file \"%s\" for writing\n", fileName.c_str());
-    return false;
-  }
+    if (output == NULL) {
+        printf("Cannot open file \"%s\" for writing\n", fileName.c_str());
+        return false;
+    }
 
-  print_header(output);
-  for (auto &block : _blockVec)
-    block.print(output);
-  fclose(output);
-  return true;
+    print_header(output);
+    for (auto &block : _blockVec) block.print(output);
+    fclose(output);
+    return true;
 }
 
 void SLHA_FILE::print_header(FILE *output) const {
-  string info = "#  Created: " + THDME::date() + "\n";
-  fprintf(
-      output,
-      "##################################################################\n");
-  fprintf(output, "#\n");
-  fprintf(output, "#  %s\n", _title.c_str());
-  fprintf(output, "%s", info.c_str());
-  fprintf(output, "#\n");
-  fprintf(
-      output,
-      "##################################################################\n");
+    string info = "#  Created: " + THDME::date() + "\n";
+    fprintf(
+        output,
+        "##################################################################\n");
+    fprintf(output, "#\n");
+    fprintf(output, "#  %s\n", _title.c_str());
+    fprintf(output, "%s", info.c_str());
+    fprintf(output, "#\n");
+    fprintf(
+        output,
+        "##################################################################\n");
 }
 
 void SLHA_FILE::add_block(const SLHA_BLOCK &block) {
-  _blockVec.push_back(block);
+    _blockVec.push_back(block);
 }
 
 void SLHA_FILE::add_blocks(const std::vector<SLHA_BLOCK> blockVec) {
-  _blockVec.insert(std::end(_blockVec), std::begin(blockVec),
-                   std::end(blockVec));
+    _blockVec.insert(std::end(_blockVec), std::begin(blockVec),
+                     std::end(blockVec));
 }
 
 void SLHA_FILE::print_to_console() const {
-  for (auto &block : _blockVec)
-    block.print();
+    for (auto &block : _blockVec) block.print();
+}
+
+bool SLHA_FILE::print_block_to_console(const std::string &blockName) const {
+    for (auto &block : _blockVec)
+        if (block.get_name() == blockName) {
+            block.print();
+            return true;
+        }
+    return false;
+}
+
+bool SLHA_FILE::contains_block(const std::string &blockName) const {
+    for (auto &block : _blockVec)
+        if (block.get_name() == blockName) {
+            return true;
+        }
+    return false;
 }
 
 double SLHA_FILE::get_param(const std::string &blockName,
                             const int &ID1) const {
-  std::vector<int> idVec;
-  idVec.push_back(ID1);
+    std::vector<int> idVec;
+    idVec.push_back(ID1);
 
-  return get_param(blockName, idVec);
+    return get_param(blockName, idVec);
 }
 
 double SLHA_FILE::get_param(const std::string &blockName, const int &ID1,
                             const int &ID2) const {
-  std::vector<int> idVec;
-  idVec.push_back(ID1);
-  idVec.push_back(ID2);
+    std::vector<int> idVec;
+    idVec.push_back(ID1);
+    idVec.push_back(ID2);
 
-  return get_param(blockName, idVec);
+    return get_param(blockName, idVec);
 }
 
 double SLHA_FILE::get_param(const std::string &blockName, const int &ID1,
                             const int &ID2, const int &ID3) const {
-  std::vector<int> idVec;
-  idVec.push_back(ID1);
-  idVec.push_back(ID2);
-  idVec.push_back(ID3);
+    std::vector<int> idVec;
+    idVec.push_back(ID1);
+    idVec.push_back(ID2);
+    idVec.push_back(ID3);
 
-  return get_param(blockName, idVec);
+    return get_param(blockName, idVec);
 }
 
 double SLHA_FILE::get_param(const std::string &blockName,
                             const std::vector<int> &idVec) const {
-  double value = 0.;
+    double value = 0.;
 
-  for (auto &block : _blockVec)
-    if (block.get_name() == blockName) {
-      if (block.get_param(idVec, value)) {
-        return value;
-      }
-    }
+    for (auto &block : _blockVec)
+        if (block.get_name() == blockName) {
+            if (block.get_param(idVec, value)) {
+                return value;
+            }
+        }
 
-  std::cout << "[ERROR]: Couldn't get parameter in block " << blockName
-            << std::endl;
+    if (!_suppressErrors)
+        std::cout << "[ERROR]: Couldn't get parameter in block " << blockName
+                  << std::endl;
 
-  return value;
+    return value;
 }

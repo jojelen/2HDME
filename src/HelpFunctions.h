@@ -14,18 +14,20 @@
 #include "FileSystem.h"
 #include "THDM.h"
 
-#include <Eigen/Dense>
-#include <chrono>
-#include <complex>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_rng.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <Eigen/Dense>
+#include <chrono>
+#include <complex>
 #include <string>
 #include <thread>
 #include <vector>
 
 namespace THDME {
+
+//------------------------------------------------------------------------------
 
 /**
  * @brief: Reads number from ifstream
@@ -56,12 +58,10 @@ double alpha_s(const double &mu);
  * @returns 1 (-1) for positive (negative) argument
  */
 inline int sign(double x) {
-  if (x >= 0)
-    return 1;
-  if (x < 0)
-    return -1;
+    if (x >= 0) return 1;
+    if (x < 0) return -1;
 
-  return 0;
+    return 0;
 }
 
 /**
@@ -92,16 +92,16 @@ void programTime(bool exact = false);
  * Prints the time since construction at time of destruction.
  * */
 struct Timer {
-  Timer();
-  Timer(const std::string &message);
-  ~Timer();
+    Timer();
+    Timer(const std::string &message);
+    ~Timer();
 
-  std::chrono::time_point<std::chrono::high_resolution_clock> _start, _end;
-  std::chrono::duration<float> _duration;
+    std::chrono::time_point<std::chrono::high_resolution_clock> _start;
 
-  std::string _message;
+    std::string _message;
 
-  void printDuration() const;
+    float getSeconds() const;
+    void printDuration() const;
 };
 
 /** @brief Gives the date at runtime.
@@ -120,14 +120,14 @@ Eigen::Matrix3cd randomMatrix3cd(gsl_rng *rng);
 // Converts double to a string with scientific notation for big numbers
 std::string stringAuto(const double &number, const char *format = nullptr);
 std::string stringAuto(const std::complex<double> &cNumber);
-std::vector<std::string>
-convertToStringVec(const std::vector<double> doubleVec);
+std::vector<std::string> convertToStringVec(
+    const std::vector<double> doubleVec);
 
 int jac(double t, const double y[], double *dfdy, double dfdt[], void *params);
 
 /**
  * @brief Biunitary transformation of the Yukawa matrices in the Higgs basis.
- * 
+ *
  * This diagonalizes the kF matrices. It also calculates the CKM matrix,
  * transforms the rF matrices. Also calculates fermion masses.
  */
@@ -149,18 +149,27 @@ void toPdgConventions(Eigen::Matrix3cd &VCKM, Eigen::Matrix3cd &PU,
 void getCkmParams(const Eigen::Matrix3cd &VCKM, double &s12, double &s13,
                   double &s23, double &delta);
 
-
 Eigen::Matrix3cd createCkmMatrix(double lambda, double A, double rhobar,
                                  double etabar);
 
 // Returns a Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> for the mass matrix
 // of neutral Higgs bosons. This can then be used to extract eigenvalues
 // or get the rotation matrix.
-Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>
-EigenSolver(double v2, const Base_higgs &higgs);
+Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> EigenSolver(
+    double v2, const Base_higgs &higgs);
 
 // Get the rotation matrix of the neutral Higgs boson mass matrix
 Eigen::Matrix3d get_rotation_matrix(double v2, const Base_higgs &higgs);
+
+// If one wants to set xi = 0 and fix arg(M12) using the tadpole equations.
+// use this function. Returns true if done correctly.
+bool fix_tadpole_real_vev(Base_generic &gen, const double &v2);
+
+bool satisfies_tadpole_equations(const Base_generic &gen,
+                                 const std::complex<double> v1,
+                                 const std::complex<double> v2);
+
+void export_potential_csv(const Base_higgs &higgs, const std::string &fileName);
 
 //------------------------------------------------------------------------------
 
@@ -174,55 +183,59 @@ Eigen::Matrix3d get_rotation_matrix(double v2, const Base_higgs &higgs);
 enum FrameColor { RED, BLUE, GREEN, YELLOW };
 
 class Table {
-private:
-  std::string _borderChar, _lineChar; // Characters for frame borders.
-  FrameColor _frameColor;
+   private:
+    std::string _borderChar, _lineChar;  // Characters for frame borders.
+    FrameColor _frameColor;
 
-  unsigned int _columns, _rows;
+    unsigned int _columns, _rows;
 
-  static bool _colorMode;
+    static bool _colorMode;
 
-  // Vector containing the size of each column (decided by largest content).
-  std::vector<unsigned int> _columnSize;
+    // Vector containing the size of each column (decided by largest content).
+    std::vector<unsigned int> _columnSize;
 
-  // True if the row should be boldfaced with underline.
-  std::vector<bool> _boldAndunderLine;
+    // True if the row should be boldfaced with underline.
+    std::vector<bool> _boldAndunderLine;
 
-  // Holds the cells of the table, _content[column, row].
-  std::vector<std::vector<std::string>> _content;
+    // Holds the cells of the table, _content[column, row].
+    std::vector<std::vector<std::string>> _content;
 
-  bool _titleBool; // Sets to true if one sets a title.
-  std::string _titleString;
+    bool _titleBool;  // Sets to true if one sets a title.
+    std::string _titleString;
 
-  // Draws text in _frameColor
-  void drawColor(std::string text) const;
+    // Draws text in _frameColor
+    void drawColor(std::string text) const;
 
-  // Draws a line in _frameColor
-  void drawLine(int length, const std::string &lineChar) const;
+    // Draws a line in _frameColor
+    void drawLine(int length, const std::string &lineChar) const;
 
-  // Draws a centered boldface underlined title on top of the table
-  void drawTitle(int length) const;
+    // Draws a centered boldface underlined title on top of the table
+    void drawTitle(int length) const;
 
-public:
-  Table(const int columns);
-  ~Table();
+   public:
+    Table(const int columns);
+    ~Table();
 
-  void set_frame_color(const FrameColor &color);
-  void set_frame_style(const std::string &lineChar,
-                       const std::string &borderChar);
-  void set_title(const std::string &title);
+    void set_frame_color(const FrameColor &color);
+    void set_frame_style(const std::string &lineChar,
+                         const std::string &borderChar);
+    void set_title(const std::string &title);
 
-  void add_row(const std::vector<std::string> &stringVec,
-               bool boldAndunderLine = false);
-  void add_row(const std::vector<double> &doubleVec,
-               bool boldAndunderLine = false);
+    void add_row(const std::vector<std::string> &stringVec,
+                 bool boldAndunderLine = false);
+    void add_row(const std::vector<double> &doubleVec,
+                 bool boldAndunderLine = false);
 
-  void print() const;
+    void print() const;
 
-  // All color can be dsiabled (for printing to text files).
-  static void change_colorMode(const bool mode);
+    // All color can be dsiabled (for printing to text files).
+    static void change_colorMode(const bool mode);
 };
 
 //-----------------------------------------------------------------------------
 
-} // namespace THDME
+void printFancyBasesTable(const Base_generic &gen, double v);
+
+//-----------------------------------------------------------------------------
+
+}  // namespace THDME

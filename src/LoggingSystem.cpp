@@ -13,27 +13,17 @@ namespace THDME {
   output in the console. */
 std::ostream* StreamClass::_garbage = new std::ostream(nullptr);
 
-void StreamClass::set_logLevel(const LogLevel& lvl)
-{
-	_lvl = lvl;
-}
+void StreamClass::set_logLevel(const LogLevel& lvl) { _lvl = lvl; }
 
-Logger::Logger()
-{
-	set_logLevel(LOG_INFO);
-}
+Logger::Logger() { set_logLevel(LOG_INFO); }
 
 void Logger::set_logLevel(const LogLevel& lvl) {
-	_lvl = lvl;
-	info.set_logLevel(lvl);
-	warning.set_logLevel(lvl);
-	error.set_logLevel(lvl);
-	debug.set_logLevel(lvl);
+    _lvl = lvl;
+    info.set_logLevel(lvl);
+    warning.set_logLevel(lvl);
+    error.set_logLevel(lvl);
+    debug.set_logLevel(lvl);
 }
 
-LogLevel Logger::get_logLevel() const
-{
-	return _lvl;
-}
-
+LogLevel Logger::get_logLevel() const { return _lvl; }
 }

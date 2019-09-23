@@ -23,9 +23,9 @@
  *============================================================================*/
 #pragma once
 
+#include <gsl/gsl_rng.h>
 #include <complex>
 #include <fstream>
-#include <gsl/gsl_rng.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -37,20 +37,26 @@ namespace THDME {
 /**
  * @brief Different type of Z_2 symmetries of the THDMs Yukawa sector.
  */
-enum Z2symmetry { NO_SYMMETRY, TYPE_I, TYPE_II, TYPE_III, TYPE_IV };
+enum Z2symmetry {
+    NO_SYMMETRY = 0,
+    TYPE_I = 1,
+    TYPE_II = 2,
+    TYPE_III = 3,
+    TYPE_IV = 4
+};
 
 /**
  * @brief Bases that are implemented in the general complex 2HDM.
  */
 enum BaseType {
-  GENERIC,
-  COMPACT,
-  HIGGS,
-  HYBRID,
-  INVARIANT,
-  C2HDM,
-  PHYSICAL,
-  S3
+    GENERIC,
+    COMPACT,
+    HIGGS,
+    HYBRID,
+    INVARIANT,
+    C2HDM,
+    PHYSICAL,
+    S3
 };
 
 enum FermionSector { UP, DOWN, LEPTON };
@@ -68,8 +74,8 @@ enum FermionSector { UP, DOWN, LEPTON };
  *   beta: angle related to generic basis with tan(beta) = v_2 / v_1.
  */
 struct ThdmBasis {
-  BaseType type;
-  double xi = 0., beta = 0.;
+    BaseType type;
+    double xi = 0., beta = 0.;
 };
 
 struct Base_generic;
@@ -84,42 +90,42 @@ struct Base_hybrid;
  * tanb is defined as the ratio of the Higgs doublets in this basis.
  */
 struct Base_generic : ThdmBasis {
-  double M112 = 0., M222 = 0, Lambda1 = 0., Lambda2 = 0., Lambda3 = 0.,
-         Lambda4 = 0;
-  std::complex<double> M12 = 0., Lambda5 = 0., Lambda6 = 0., Lambda7 = 0.;
+    double M112 = 0., M222 = 0, Lambda1 = 0., Lambda2 = 0., Lambda3 = 0.,
+           Lambda4 = 0;
+    std::complex<double> M12 = 0., Lambda5 = 0., Lambda6 = 0., Lambda7 = 0.;
 
-  Base_generic() { type = GENERIC; }
+    Base_generic() { type = GENERIC; }
 
-  bool contains_nan() const; // Returns true/false if any parameter is NaN.
+    bool contains_nan() const;  // Returns true/false if any parameter is NaN.
 
-  // Overloading the << operator for ostream
-  friend std::ostream &operator<<(std::ostream &oS, const Base_generic &gen);
+    // Overloading the << operator for ostream
+    friend std::ostream &operator<<(std::ostream &oS, const Base_generic &gen);
 
-  void generate_random_softCpConserved(const gsl_rng *rng);
+    void generate_random_softCpConserved(const gsl_rng *rng);
 
-  Base_compact convert_to_compact() const;
-  Base_higgs convert_to_higgs() const;
-  Base_invariant convert_to_invariant(const double &v2) const;
+    Base_compact convert_to_compact() const;
+    Base_higgs convert_to_higgs() const;
+    Base_invariant convert_to_invariant(const double &v2) const;
 
-  std::vector<double> convert_to_vector() const;
+    std::vector<double> convert_to_vector() const;
 };
 
 // Needed for given parameters to gsl functions
 struct genStruct {
-  double v2;
-  Base_generic gen;
+    double v2;
+    Base_generic gen;
 };
 
 /******************************************************************************
  * @brief: Compact basis/notation for the generic potential
  */
 struct Base_compact : ThdmBasis {
-  std::complex<double> Y[2][2], Z[2][2][2][2];
+    std::complex<double> Y[2][2], Z[2][2][2][2];
 
-  Base_compact() { type = COMPACT; }
+    Base_compact() { type = COMPACT; }
 
-  // Overloading the << operator for ostream
-  friend std::ostream &operator<<(std::ostream &oS, const Base_compact &comp);
+    // Overloading the << operator for ostream
+    friend std::ostream &operator<<(std::ostream &oS, const Base_compact &comp);
 };
 
 /******************************************************************************
@@ -131,19 +137,19 @@ struct Base_compact : ThdmBasis {
  *
  */
 struct Base_higgs : ThdmBasis {
-  double mHc = 0, Y1 = 0, Y2 = 0, Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0;
-  std::complex<double> Y3 = 0, Z5 = 0, Z6 = 0, Z7 = 0;
+    double mHc = 0, Y1 = 0, Y2 = 0, Z1 = 0, Z2 = 0, Z3 = 0, Z4 = 0;
+    std::complex<double> Y3 = 0, Z5 = 0, Z6 = 0, Z7 = 0;
 
-  Base_higgs() { type = HIGGS; }
+    Base_higgs() { type = HIGGS; }
 
-  // Overloading the << operator for ostream
-  friend std::ostream &operator<<(std::ostream &oS, const Base_higgs &higgs);
+    // Overloading the << operator for ostream
+    friend std::ostream &operator<<(std::ostream &oS, const Base_higgs &higgs);
 
-  Base_generic convert_to_generic() const;
-  Base_compact convert_to_compact() const;
-  Base_invariant convert_to_invariant(const double &v2) const;
+    Base_generic convert_to_generic() const;
+    Base_compact convert_to_compact() const;
+    Base_invariant convert_to_invariant(const double &v2) const;
 
-  std::vector<double> convert_to_vector() const;
+    std::vector<double> convert_to_vector() const;
 };
 
 /******************************************************************************
@@ -167,28 +173,29 @@ struct Base_higgs : ThdmBasis {
  *            in the Higgs basis. Setting it, only gives different Higgs bases.
  */
 struct Base_invariant : ThdmBasis {
-  double mHc, mh[3], s12, c13, Z2, Z3, theta23;
-  std::complex<double> Z7inv;
+    double mHc, mh[3], s12, c13, Z2, Z3, theta23;
+    std::complex<double> Z7inv;
 
-  double cPhi; // cPhi is not needed as a free parameter, but is an U(2)
-               // invariant one.
+    double cPhi;  // cPhi is not needed as a free parameter, but is an U(2)
+                  // invariant one.
 
-  Base_invariant() : theta23(0.) { type = INVARIANT; }
+    Base_invariant() : theta23(0.) { type = INVARIANT; }
 
-  // Overloading the << operator for ostream
-  friend std::ostream &operator<<(std::ostream &oS, const Base_invariant &inv);
+    // Overloading the << operator for ostream
+    friend std::ostream &operator<<(std::ostream &oS,
+                                    const Base_invariant &inv);
 
-  // Overloading the << operator for ofstream
-  friend std::ofstream &operator<<(std::ofstream &of,
-                                   const Base_invariant &inv);
+    // Overloading the << operator for ofstream
+    friend std::ofstream &operator<<(std::ofstream &of,
+                                     const Base_invariant &inv);
 
-  Base_generic convert_to_generic(const double &v2) const;
-  Base_compact convert_to_compact(const double &v2) const;
-  Base_higgs convert_to_higgs(const double &v2) const;
+    Base_generic convert_to_generic(const double &v2) const;
+    Base_compact convert_to_compact(const double &v2) const;
+    Base_higgs convert_to_higgs(const double &v2) const;
 
-  Eigen::Matrix3d get_R() const;
+    Eigen::Matrix3d get_R() const;
 
-  std::vector<double> convert_to_vector() const;
+    std::vector<double> convert_to_vector() const;
 };
 
 /******************************************************************************
@@ -212,21 +219,21 @@ struct Base_invariant : ThdmBasis {
  *   tanb: tan(beta)
  */
 struct Base_hybrid : ThdmBasis {
-  double mh, mH, cba, Z4, Z5, Z7, tanb;
+    double mh, mH, cba, Z4, Z5, Z7, tanb;
 
-  Base_hybrid() { type = HYBRID; }
+    Base_hybrid() { type = HYBRID; }
 
-  // Overloading the << operator for ostream
-  friend std::ostream &operator<<(std::ostream &oS, const Base_hybrid &hyb);
+    // Overloading the << operator for ostream
+    friend std::ostream &operator<<(std::ostream &oS, const Base_hybrid &hyb);
 
-  // Sets parameters to random values.
-  void generate_random_softCpConserved(const gsl_rng *rng);
+    // Sets parameters to random values.
+    void generate_random_softCpConserved(const gsl_rng *rng);
 
-  Base_generic convert_to_generic(const double &v2) const;
-  Base_higgs convert_to_higgs(const double &v2) const;
-  Base_invariant convert_to_invariant(const double &v2) const;
+    Base_generic convert_to_generic(const double &v2) const;
+    Base_higgs convert_to_higgs(const double &v2) const;
+    Base_invariant convert_to_invariant(const double &v2) const;
 
-  std::vector<double> convert_to_vector() const;
+    std::vector<double> convert_to_vector() const;
 };
 
 /******************************************************************************
@@ -250,16 +257,16 @@ struct Base_hybrid : ThdmBasis {
  *   tanb: tan(beta)
  */
 struct Base_physical : ThdmBasis {
-  double mh, mH, mA, mHc, sba, lambda6, lambda7, M12, tanb;
+    double mh, mH, mA, mHc, sba, lambda6, lambda7, M12, tanb;
 
-  Base_physical() { type = PHYSICAL; }
+    Base_physical() { type = PHYSICAL; }
 
-  // Overloading the << operator for ostream
-  friend std::ostream &operator<<(std::ostream &oS, const Base_physical &phy);
+    // Overloading the << operator for ostream
+    friend std::ostream &operator<<(std::ostream &oS, const Base_physical &phy);
 
-  Base_generic convert_to_generic(const double &v2) const;
-  Base_higgs convert_to_higgs(const double &v2) const;
-  Base_invariant convert_to_invariant(const double &v2) const;
+    Base_generic convert_to_generic(const double &v2) const;
+    Base_higgs convert_to_higgs(const double &v2) const;
+    Base_invariant convert_to_invariant(const double &v2) const;
 };
 /******************************************************************************
  * @brief: C2HDM basis
@@ -280,22 +287,22 @@ struct Base_physical : ThdmBasis {
  *   tanb: tan(beta)
  */
 struct Base_c2hdm : ThdmBasis {
-  std::vector<double> mh, alpha;
-  double mHc, M12, tanb;
+    std::vector<double> mh, alpha;
+    double mHc, M12, tanb;
 
-  Base_c2hdm();
+    Base_c2hdm();
 
-  // Overloading the << operator for ostream
-  friend std::ostream &operator<<(std::ostream &oS, const Base_c2hdm &c2hdm);
+    // Overloading the << operator for ostream
+    friend std::ostream &operator<<(std::ostream &oS, const Base_c2hdm &c2hdm);
 
-  // Sets parameters to random values.
-  void generate_random(const gsl_rng *rng);
+    // Sets parameters to random values.
+    void generate_random(const gsl_rng *rng);
 
-  Base_generic convert_to_generic(const double &v2) const;
-  Base_higgs convert_to_higgs(const double &v2) const;
-  Base_invariant convert_to_invariant(const double &v2) const;
+    Base_generic convert_to_generic(const double &v2) const;
+    Base_higgs convert_to_higgs(const double &v2) const;
+    Base_invariant convert_to_invariant(const double &v2) const;
 
-  std::vector<double> convert_to_vector() const;
+    std::vector<double> convert_to_vector() const;
 };
 
 /******************************************************************************
@@ -305,18 +312,18 @@ struct Base_c2hdm : ThdmBasis {
  * This basis can be found in for example arXiv:1705.07784.
  */
 struct Base_s3 : ThdmBasis {
-  double mu1 = 0., mu2 = 0., mu12 = 0., lambda1 = 0., lambda2 = 0.,
-         lambda3 = 0., tanb = 0.;
+    double mu1 = 0., mu2 = 0., mu12 = 0., lambda1 = 0., lambda2 = 0.,
+           lambda3 = 0., tanb = 0.;
 
-  Base_s3() { type = S3; }
-  Base_s3(double v, double tb, double mh, double mH, double mA, double mHc);
-  // Overloading the << operator for ostream
-  friend std::ostream &operator<<(std::ostream &oS, const Base_s3 &s3);
+    Base_s3() { type = S3; }
+    Base_s3(double v, double tb, double mh, double mH, double mA, double mHc);
+    // Overloading the << operator for ostream
+    friend std::ostream &operator<<(std::ostream &oS, const Base_s3 &s3);
 
-  Base_generic convert_to_generic(const double &v2) const;
-  Base_compact convert_to_compact(const double &v2) const;
-  Base_higgs convert_to_higgs(const double &v2) const;
-  Base_invariant convert_to_invariant(const double &v2) const;
+    Base_generic convert_to_generic(const double &v2) const;
+    Base_compact convert_to_compact(const double &v2) const;
+    Base_higgs convert_to_higgs(const double &v2) const;
+    Base_invariant convert_to_invariant(const double &v2) const;
 };
 
-} // namespace THDME
+}  // namespace THDME

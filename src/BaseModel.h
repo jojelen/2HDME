@@ -18,47 +18,49 @@
  *============================================================================*/
 #pragma once
 
-#include "Structures.h"
-#include "LoggingSystem.h"
 #include "FileSystem.h"
+#include "LoggingSystem.h"
+#include "Structures.h"
 
 #include <gsl/gsl_odeiv2.h>
-#include <string>
 #include <atomic>
+#include <string>
 
 namespace THDME {
 
-
-
 class FileSystem;
 
-class BaseModel
-{
-public:
-  BaseModel(); // Initializes the home directory of FileSystem to "output/"
+class BaseModel {
+   public:
+    BaseModel();  // Initializes the home directory of FileSystem to "output/"
 
-  virtual ~BaseModel();
+    virtual ~BaseModel();
 
-  virtual void print_all() const = 0; // Prints model details to console.
+    virtual void print_all() const = 0;  // Prints model details to console.
 
-  // logLevel determines what level of information is printed to the console.
-  // Possible choices: LOG_INFO, LOG_ERRORS, LOG_WARNINGS, LOG_DEBUG.
-  inline void set_logLevel(LogLevel lvl) { _console.set_logLevel(lvl); }
+    // logLevel determines what level of information is printed to the console.
+    // Possible choices: LOG_INFO, LOG_ERRORS, LOG_WARNINGS, LOG_DEBUG.
+    inline void set_logLevel(LogLevel lvl) { _console.set_logLevel(lvl); }
 
-  inline std::string get_name() const { return _modelName; }
+    inline std::string get_name() const { return _modelName; }
 
-  inline LogLevel get_logLevel() const { return _console.get_logLevel(); }
+    inline LogLevel get_logLevel() const { return _console.get_logLevel(); }
 
-protected:
-  std::string _modelName;
+    // Calling this before creating derived classes disables the 2HDME logo
+    // being shown.
+    static void disable_logo();
 
-  Logger _console;
-  FileSystem _files;
+   protected:
+    std::string _modelName;
 
-private:
-  void print_2hdme_info(); // Prints logo to console
+    Logger _console;
+    FileSystem _files;
 
-  static std::atomic<bool> _first_run; // turns false after first class object is created.
-  const static std::string _version; // version number of software.
+   private:
+    void print_2hdme_info();  // Prints logo to console
+
+    static std::atomic<bool>
+        _first_run;  // turns false after first class object is created.
+    const static std::string _version;  // version number of software.
 };
 }

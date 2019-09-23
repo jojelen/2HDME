@@ -1,4 +1,4 @@
-# 2 Higgs Doublet Model Evolver version 1.2
+# 2 Higgs Doublet Model Evolver v.1.2
 
 2 Higgs Doublet Model Evolver (**2HDME**) is a C++ program that can evolve a
 general 2HDM in renormalization energy scale, by solving the 1- or 2-loop
@@ -50,6 +50,10 @@ See the manual for more details.
   included in GNU/Linux distributions. See https://www.gnu.org/software/gsl/ for
   details.
 
+* To use HiggsBounds and HiggsSignals, one needs to download and compile the two
+  programs respectively. The libraries libHB and libHS should be placed in lib
+  directory.
+
 ### Additional dependencies
 
 These dependencies are optional and can be enabled/disabled by commenting the
@@ -87,6 +91,12 @@ in the terminal.  If the **GNUPLOT** functionality hasn't been disabled (by
 commenting out lines in the Makefile), plots of the parameters should have been
 created in *output/DemoRGE/plots*.
 
+### Versions
+
+* v.1.2 New EDM class. 
+* v.1.1 Implemented oblique parameters, Global class with constant variables.
+  Also new SLHA class for easier handle of input/output to textfiles.
+* v.1.0 First version.
 
 ********************************************************************************
 
@@ -94,6 +104,8 @@ created in *output/DemoRGE/plots*.
 
 Directories:
 
+* *SPhenoModelFiles*: Contains output from **SARAH** that should be used if one
+wants to link SPheno.
 * *src*: Source code
 * *src/demos*: Short demo applications that use 2HDME.
 * *src/RGEs*: Header files that contain the RGEs for 2HDM and SM in separate 
@@ -101,28 +113,27 @@ files.
 
 Files in *src*:
 * *BaseModel* (.h and .cpp): Abstract base class that RgeModel inherits from.
+* *EDM* (.h and .cpp): Class that calculates the eEDM.
 * *FileSystem* (.h and .cpp): Class that handles I/O to files.
-* *Globals* (.h and .cpp): Collection of constant global variables.
 * *GnuPlotSystem* (.h and .cpp): Class that can create gnuplot scripts and execute
 commands that exports postscript plots.
+* *Globals* (.h and .cpp): Collection of global constant variables.
 * *HelpFunctions* (.h and .cpp): Miscellaneous structs and functions. Contains a 
 class that is used to print tables to the console.
 * *LoggingSystem* (.h and .cpp): Class that I/O to console for BaseModel
 classes.
-* *NewModel* (.h and .cpp): Example of a new model that can be modified.
-* *Oblique* (.h and .cpp): Class for calculating oblique parameters for THDM.
+* *NewModel* (.h and .cpp): An example class that inherits from RgeModel. It
+represents QED.
 * *RGE* (.h and .cpp): Functions that calculate the RGEs that are contained in 
 *src/RGEs*.
 * *RgeModel* (.h and .cpp): Class that handles the RG evolution functionality for
 derived classes. Inherits from BaseModel.
-* *SLHA* (.h and .cpp): Class for I/O to SLHA-like text files.
 * *SM* (.h and .cpp): Class for standard model. Inherits from RgeModel.
-* *SPheno* (.h and .cpp): Class that acts as a wrapper to SPheno.
 * *Structures* (.h and .cpp): Miscellaneous structs.
+* *THDM* (.h and .cpp): Class that represents the 2HDM. Inherits from RgeModel.
 * *THDM_bases* (.h and .cpp): Contains structs that are different 
 parameterizations of the 2HDM scalar potential. They have functions that 
 transform them into eachother.
-* *THDM* (.h and .cpp): Class that represents the 2HDM. Inherits from RgeModel.
 
 ## Authors
 

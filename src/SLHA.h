@@ -39,14 +39,14 @@
 #include <string>
 #include <vector>
 
-struct SLHA_PARAMETER // SLHA parameter building block
+struct SLHA_PARAMETER  // SLHA parameter building block
 {
-  std::vector<int> ID; // The indices that specifies the parameter
-  double value;
-  std::string comment;
+    std::vector<int> ID;  // The indices that specifies the parameter
+    double value;
+    std::string comment;
 
-  friend std::ostream &operator<<(std::ostream &oS,
-                                  const SLHA_PARAMETER &parameter);
+    friend std::ostream &operator<<(std::ostream &oS,
+                                    const SLHA_PARAMETER &parameter);
 };
 
 // Sets the parameter from a string, returns false if line contains less than
@@ -56,63 +56,70 @@ bool retrieve_SLHA_PARAMETER(SLHA_PARAMETER &parameter,
 
 //-----------------------------------------------------------------------------
 
-class SLHA_BLOCK // A block that contains a number of SLHA_PARAMETERs
+class SLHA_BLOCK  // A block that contains a number of SLHA_PARAMETERs
 {
-public:
-  SLHA_BLOCK(const std::string &blockName, const std::string &comment = "");
+   public:
+    SLHA_BLOCK(const std::string &blockName, const std::string &comment = "");
 
-  // Different functions that adds a parameter to the block.
-  void add_parameter(const SLHA_PARAMETER parameter);
-  void add_parameter(const int &id, const double &value,
-                     const std::string &comment);
-  void add_parameter(const int &id1, const int &id2, const double &value,
-                     const std::string &comment);
-  void add_parameter(const int &id1, const int &id2, const int &id3,
-                     const double &value, const std::string &comment);
-  void add_parameter(const std::vector<int> &idVec, const double &value,
-                     const std::string &comment);
+    // Different functions that adds a parameter to the block.
+    void add_parameter(const SLHA_PARAMETER parameter);
+    void add_parameter(const int &id, const double &value,
+                       const std::string &comment);
+    void add_parameter(const int &id1, const int &id2, const double &value,
+                       const std::string &comment);
+    void add_parameter(const int &id1, const int &id2, const int &id3,
+                       const double &value, const std::string &comment);
+    void add_parameter(const std::vector<int> &idVec, const double &value,
+                       const std::string &comment);
 
-  bool get_param(const std::vector<int> ID, double &value) const;
+    bool get_param(const std::vector<int> ID, double &value) const;
 
-  void print() const;             // Prints to console with printf
-  void print(FILE *output) const; // Prints to file with fprintf
+    void print() const;              // Prints to console with printf
+    void print(FILE *output) const;  // Prints to file with fprintf
 
-  std::string get_name() const;
+    std::string get_name() const;
 
-private:
-  std::string _name;
-  std::string _comment;
-  std::vector<SLHA_PARAMETER> _paramVec;
+   private:
+    std::string _name;
+    std::string _comment;
+    std::vector<SLHA_PARAMETER> _paramVec;
 };
 
 //-----------------------------------------------------------------------------
 
-class SLHA_FILE // Main class that stores the SLHA file in SLHA_BLOCKs
+class SLHA_FILE  // Main class that stores the SLHA file in SLHA_BLOCKs
 {
-public:
-  SLHA_FILE(const std::string &title = "SLHA file created by 2HDME");
-  ~SLHA_FILE();
+   public:
+    SLHA_FILE(const std::string &title = "SLHA file created by 2HDME");
+    ~SLHA_FILE();
 
-  bool load_file(const std::string &fileName);
-  bool save_to_file(const std::string &fileName) const;
+    bool load_file(const std::string &fileName);
+    bool save_to_file(const std::string &fileName) const;
 
-  void print_to_console() const;
+    void print_to_console() const;
+    bool print_block_to_console(const std::string &blockName) const;
 
-  void add_block(const SLHA_BLOCK &block);
-  void add_blocks(const std::vector<SLHA_BLOCK> blockVec);
+    bool contains_block(const std::string &blockName) const;
 
-  // Retrieves a parameter
-  double get_param(const std::string &block, const int &ID1) const;
-  double get_param(const std::string &block, const int &ID1,
-                   const int &ID2) const;
-  double get_param(const std::string &block, const int &ID, const int &ID2,
-                   const int &ID3) const;
-  double get_param(const std::string &block,
-                   const std::vector<int> &idVec) const;
+    void add_block(const SLHA_BLOCK &block);
+    void add_blocks(const std::vector<SLHA_BLOCK> blockVec);
 
-private:
-  void print_header(FILE *output) const;
+    // Retrieves a parameter
+    double get_param(const std::string &block, const int &ID1) const;
+    double get_param(const std::string &block, const int &ID1,
+                     const int &ID2) const;
+    double get_param(const std::string &block, const int &ID, const int &ID2,
+                     const int &ID3) const;
+    double get_param(const std::string &block,
+                     const std::vector<int> &idVec) const;
 
-  std::string _title;
-  std::vector<SLHA_BLOCK> _blockVec;
+    void suppress_errors(const bool suppress);
+
+   private:
+    void print_header(FILE *output) const;
+
+    std::string _title;
+    std::vector<SLHA_BLOCK> _blockVec;
+
+    bool _suppressErrors;
 };
